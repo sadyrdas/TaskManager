@@ -36,9 +36,11 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImagePainter.State.Empty.painter
 import cz.cvut.fel.tasktest.data.BoardViewModel
 import cz.cvut.fel.tasktest.data.TagViewModel
+import cz.cvut.fel.tasktest.data.TaskViewModel
 import cz.cvut.fel.tasktest.data.UserViewModel
 import cz.cvut.fel.tasktest.screens.AboutScreen
 import cz.cvut.fel.tasktest.screens.AccountCustomizationScreen
+import cz.cvut.fel.tasktest.screens.AllTasksScreen
 
 import cz.cvut.fel.tasktest.screens.ArticlesScreen
 import cz.cvut.fel.tasktest.screens.BoardCreationScreen
@@ -49,21 +51,23 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 enum class MainRoute(value: String) {
-    Articles("articles"),
+    Boards("boards"),
     Statistics("statistics"),
     Settings("settings"),
     AccountCustomization("accountCustomization"),
     BoardCreation("boardCreation"),
     TagCreation("tagCreation"),
-    TaskCreation("taskCreation")
+    TaskCreation("taskCreation"),
+    AllTasks("allTasks")
 }
 
 private data class DrawerMenu(val id: Int, val title: String, val route: String)
 
 private val menus = arrayOf(
-    DrawerMenu(R.drawable.pdaboards, "Articles", MainRoute.Articles.name),
+    DrawerMenu(R.drawable.pdaboards, "Boards", MainRoute.Boards.name),
     DrawerMenu(R.drawable.settingsicon, "Settings", MainRoute.Settings.name),
-    DrawerMenu(R.drawable.statisticsicon, "Statistics", MainRoute.Statistics.name)
+    DrawerMenu(R.drawable.statisticsicon, "Statistics", MainRoute.Statistics.name),
+    DrawerMenu(R.drawable.tasklisticon, "All Tasks", MainRoute.AllTasks.name)
 )
 
 @Composable
@@ -108,6 +112,7 @@ private fun DrawerContent(
 
 @Composable
 fun MainNavigation(
+    taskViewModel: TaskViewModel,
     viewModel: BoardViewModel,
     viewUserModel: UserViewModel,
     viewTagModel: TagViewModel,
@@ -129,8 +134,8 @@ fun MainNavigation(
             }
         }
     ) {
-        NavHost(navController = navController, startDestination = MainRoute.Articles.name) {
-            composable(MainRoute.Articles.name) {
+        NavHost(navController = navController, startDestination = MainRoute.Boards.name) {
+            composable(MainRoute.Boards.name) {
                 ArticlesScreen(navController,viewModel, drawerState)
             }
             composable(MainRoute.Statistics.name) {
@@ -149,7 +154,10 @@ fun MainNavigation(
                 TagCreationScreen(drawerState, viewTagModel)
             }
             composable(MainRoute.TaskCreation.name){
-                TaskCreationScreen(drawerState, viewModel)
+                TaskCreationScreen(drawerState, viewModel, taskViewModel)
+            }
+            composable(MainRoute.AllTasks.name) {
+                AllTasksScreen(drawerState, taskViewModel)
             }
         }
     }

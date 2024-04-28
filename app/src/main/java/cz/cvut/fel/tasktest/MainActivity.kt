@@ -18,6 +18,7 @@ import com.jetpackcompose.navigation.ui.theme.JetpackComposeDrawerNavigationThem
 import cz.cvut.fel.tasktest.data.BoardState
 import cz.cvut.fel.tasktest.data.BoardViewModel
 import cz.cvut.fel.tasktest.data.TagViewModel
+import cz.cvut.fel.tasktest.data.TaskViewModel
 import cz.cvut.fel.tasktest.data.TaskifyDatabase
 import cz.cvut.fel.tasktest.data.UserViewModel
 import cz.cvut.fel.tasktest.screens.BoardCreationScreen
@@ -59,6 +60,16 @@ class MainActivity : ComponentActivity() {
         }
     )
 
+    private val taskViewModel by viewModels<TaskViewModel>(
+        factoryProducer ={
+            object: ViewModelProvider.Factory{
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    return TaskViewModel(db.taskDao()) as T
+                }
+            }
+        }
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -68,7 +79,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainNavigation(viewModel, viewUserModel, viewTagModel)
+                    MainNavigation(taskViewModel, viewModel, viewUserModel, viewTagModel)
                 }
             }
         }

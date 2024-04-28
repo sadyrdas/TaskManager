@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -79,7 +80,7 @@ fun ArticlesScreen(navController: NavHostController, viewModel: BoardViewModel, 
             CustomAppBar(
                 drawerState = drawerState,
                 title = "Boards",
-                imageVector = Icons.Filled.ArrowBack,
+                imageVector = Icons.Filled.Menu,
                 backgroundColor = MaterialTheme.colorScheme.primary// Здесь указываем цвет
             )
         },

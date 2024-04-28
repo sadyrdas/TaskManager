@@ -9,4 +9,7 @@ sealed interface BoardEvent {
     data class GetAllBoards(val boards: List<Board>) : BoardEvent
     data class DeleteBoard(val board: Board) : BoardEvent
     data class ImageSelected(val imagePath: String) : BoardEvent
+    data class SetSectionToBoard(val section: Section) : BoardEvent
+    data class DeleteSectionFromBoard(val section: Section) : BoardEvent
+
 }

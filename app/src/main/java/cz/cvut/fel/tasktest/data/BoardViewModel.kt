@@ -109,6 +109,16 @@ class BoardViewModel(
             is BoardEvent.ImageSelected -> {
                 _state.update { it.copy(background = event.imagePath) }
             }
+            is BoardEvent.SetSectionToBoard -> {
+                val sections = _state.value.sections.toMutableList()
+                sections.add(event.section)
+                _state.update { it.copy(sections = sections) }
+            }
+            is BoardEvent.DeleteSectionFromBoard -> {
+                val sections = _state.value.sections.toMutableList()
+                sections.remove(event.section)
+                _state.update { it.copy(sections = sections) }
+            }
         }
     }
 }

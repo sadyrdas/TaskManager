@@ -44,10 +44,23 @@ import cz.cvut.fel.tasktest.CustomAppBar
 import cz.cvut.fel.tasktest.data.Board
 import cz.cvut.fel.tasktest.data.BoardEvent
 import cz.cvut.fel.tasktest.data.BoardViewModel
+import cz.cvut.fel.tasktest.data.SectionViewModel
+import cz.cvut.fel.tasktest.data.TagEvent
+import cz.cvut.fel.tasktest.data.TaskEvent
+import cz.cvut.fel.tasktest.data.TaskState
+import cz.cvut.fel.tasktest.data.TaskViewModel
 import cz.cvut.fel.tasktest.data.TaskifyDatabase
 
 @Composable
-fun TaskCreationScreen(drawerState: DrawerState, viewModel: BoardViewModel) {
+fun TaskCreationScreen(drawerState: DrawerState, viewModel: BoardViewModel, taskViewModel: TaskViewModel, sectionViewModel: SectionViewModel) {
+
+    val boardsState by viewModel.state.collectAsState()
+    // Заполняем список items названиями бордов из состояния
+    val items = boardsState.boards.map { it.title }
+    val sectionList = boardsState.sections.map { it.title }
+
+    val sectionState by sectionViewModel.state.collectAsState()
+
     Scaffold(
         topBar = {
             CustomAppBar(drawerState = drawerState, title = "Create Task",
@@ -67,13 +80,13 @@ fun TaskCreationScreen(drawerState: DrawerState, viewModel: BoardViewModel) {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(16.dp)
             ) {
-                DropDown("Desk", viewModel)
+                DropDown("Desk", items)
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(16.dp)
             ) {
-                DropDown("Section", viewModel)
+                DropDown("Section", sectionList)
             }
 
             Column(modifier = Modifier
@@ -105,16 +118,16 @@ fun TaskCreationScreen(drawerState: DrawerState, viewModel: BoardViewModel) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 16.dp, top = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
                         Icons.Filled.DateRange, contentDescription = "Tag Icon",
-                        modifier = Modifier.padding(end = 16.dp)
+                        modifier = Modifier.padding(end = 16.dp),
                     )
                     Column {
                         Text(
                             text = "Starting..",
-                            modifier = Modifier.padding(bottom = 4.dp)
+                            modifier = Modifier.padding(bottom = 4.dp),
                         )
                         Divider(modifier = Modifier
                             .padding(bottom = 4.dp)
@@ -150,7 +163,7 @@ fun TaskCreationScreen(drawerState: DrawerState, viewModel: BoardViewModel) {
                         .height(3.dp)
                 )
 
-                Button(onClick = { /*TODO*/ },
+                Button(onClick = { taskViewModel.onEvent(TaskEvent.SaveTask) },
                 modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 50.dp)) {
                     Text(text = "Save")
                 }
@@ -162,15 +175,11 @@ fun TaskCreationScreen(drawerState: DrawerState, viewModel: BoardViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DropDown(label:String, viewModel: BoardViewModel){
+fun DropDown(label:String, items: List<String>){
     var isExpanded by remember { mutableStateOf(false) }
 
-    var selectedText by remember { mutableStateOf("") } // Не нужно здесь инициализировать выбранный текст
+    var selectedText by remember { mutableStateOf("") }
 
-    val boardsState by viewModel.state.collectAsState() // Получаем состояние бордов из ViewModel
-
-    // Заполняем список items названиями бордов из состояния
-    val items = boardsState.boards.map { it.title }
     ExposedDropdownMenuBox(
         expanded = isExpanded,
         onExpandedChange = { isExpanded = it })
