@@ -47,8 +47,8 @@ import com.github.skydoves.colorpicker.compose.AlphaTile
 import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 import cz.cvut.fel.tasktest.CustomAppBar
-import cz.cvut.fel.tasktest.data.TagEvent
-import cz.cvut.fel.tasktest.data.TagViewModel
+import cz.cvut.fel.tasktest.data.events.TagEvent
+import cz.cvut.fel.tasktest.data.viewModels.TagViewModel
 
 
 @Composable

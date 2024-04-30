@@ -1,6 +1,7 @@
-package cz.cvut.fel.tasktest.data
+package cz.cvut.fel.tasktest.data.events
 
-import android.net.Uri
+import cz.cvut.fel.tasktest.data.Board
+import cz.cvut.fel.tasktest.data.Section
 
 sealed interface BoardEvent {
     object SaveBoard : BoardEvent

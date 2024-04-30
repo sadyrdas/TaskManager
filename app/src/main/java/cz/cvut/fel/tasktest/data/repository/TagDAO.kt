@@ -1,9 +1,10 @@
-package cz.cvut.fel.tasktest.data
+package cz.cvut.fel.tasktest.data.repository
 
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import cz.cvut.fel.tasktest.data.Tag
 
 @Dao
 interface TagDAO {

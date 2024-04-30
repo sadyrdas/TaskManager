@@ -1,4 +1,6 @@
-package cz.cvut.fel.tasktest.data
+package cz.cvut.fel.tasktest.data.states
+
+import cz.cvut.fel.tasktest.data.Task
 
 data class SectionState (
     val title: String = "",

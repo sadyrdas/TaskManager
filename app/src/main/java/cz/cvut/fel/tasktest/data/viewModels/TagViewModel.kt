@@ -1,7 +1,11 @@
-package cz.cvut.fel.tasktest.data
+package cz.cvut.fel.tasktest.data.viewModels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cz.cvut.fel.tasktest.data.Tag
+import cz.cvut.fel.tasktest.data.events.TagEvent
+import cz.cvut.fel.tasktest.data.repository.TagDAO
+import cz.cvut.fel.tasktest.data.states.TagState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

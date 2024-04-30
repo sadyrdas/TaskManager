@@ -5,23 +5,19 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.DrawerState
-import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.room.Room
 import com.jetpackcompose.navigation.ui.theme.JetpackComposeDrawerNavigationTheme
-import cz.cvut.fel.tasktest.data.BoardState
-import cz.cvut.fel.tasktest.data.BoardViewModel
-import cz.cvut.fel.tasktest.data.TagViewModel
-import cz.cvut.fel.tasktest.data.TaskViewModel
+import cz.cvut.fel.tasktest.data.viewModels.BoardViewModel
+import cz.cvut.fel.tasktest.data.viewModels.SectionViewModel
+import cz.cvut.fel.tasktest.data.viewModels.TagViewModel
+import cz.cvut.fel.tasktest.data.viewModels.TaskViewModel
 import cz.cvut.fel.tasktest.data.TaskifyDatabase
-import cz.cvut.fel.tasktest.data.UserViewModel
-import cz.cvut.fel.tasktest.screens.BoardCreationScreen
+import cz.cvut.fel.tasktest.data.viewModels.UserViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -70,6 +66,16 @@ class MainActivity : ComponentActivity() {
         }
     )
 
+    private val sectionViewModel by viewModels<SectionViewModel>(
+        factoryProducer ={
+            object: ViewModelProvider.Factory{
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    return SectionViewModel(db.sectionDAO()) as T
+                }
+            }
+        }
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -79,7 +85,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainNavigation(taskViewModel, viewModel, viewUserModel, viewTagModel)
+                    MainNavigation(taskViewModel, viewModel, sectionViewModel, viewUserModel, viewTagModel)
                 }
             }
         }

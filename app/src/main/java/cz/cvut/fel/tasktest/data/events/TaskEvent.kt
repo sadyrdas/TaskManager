@@ -1,5 +1,8 @@
-package cz.cvut.fel.tasktest.data
+package cz.cvut.fel.tasktest.data.events
 
+import cz.cvut.fel.tasktest.data.Note
+import cz.cvut.fel.tasktest.data.Tag
+import cz.cvut.fel.tasktest.data.Task
 import java.util.Date
 
 sealed interface TaskEvent {

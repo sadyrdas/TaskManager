@@ -1,4 +1,7 @@
-package cz.cvut.fel.tasktest.data
+package cz.cvut.fel.tasktest.data.events
+
+import cz.cvut.fel.tasktest.data.Section
+import cz.cvut.fel.tasktest.data.Task
 
 sealed interface SectionEvent {
     object SaveSection: SectionEvent

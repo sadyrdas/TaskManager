@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
@@ -33,11 +31,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import coil.compose.AsyncImagePainter.State.Empty.painter
-import cz.cvut.fel.tasktest.data.BoardViewModel
-import cz.cvut.fel.tasktest.data.TagViewModel
-import cz.cvut.fel.tasktest.data.TaskViewModel
-import cz.cvut.fel.tasktest.data.UserViewModel
+import cz.cvut.fel.tasktest.data.viewModels.BoardViewModel
+import cz.cvut.fel.tasktest.data.viewModels.SectionViewModel
+import cz.cvut.fel.tasktest.data.viewModels.TagViewModel
+import cz.cvut.fel.tasktest.data.viewModels.TaskViewModel
+import cz.cvut.fel.tasktest.data.viewModels.UserViewModel
 import cz.cvut.fel.tasktest.screens.AboutScreen
 import cz.cvut.fel.tasktest.screens.AccountCustomizationScreen
 import cz.cvut.fel.tasktest.screens.AllTasksScreen
@@ -114,6 +112,7 @@ private fun DrawerContent(
 fun MainNavigation(
     taskViewModel: TaskViewModel,
     viewModel: BoardViewModel,
+    sectionViewModel: SectionViewModel,
     viewUserModel: UserViewModel,
     viewTagModel: TagViewModel,
     navController: NavHostController = rememberNavController(),
@@ -154,7 +153,7 @@ fun MainNavigation(
                 TagCreationScreen(drawerState, viewTagModel)
             }
             composable(MainRoute.TaskCreation.name){
-                TaskCreationScreen(drawerState, viewModel, taskViewModel)
+                TaskCreationScreen(drawerState, viewModel, taskViewModel, sectionViewModel)
             }
             composable(MainRoute.AllTasks.name) {
                 AllTasksScreen(drawerState, taskViewModel)

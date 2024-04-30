@@ -1,7 +1,5 @@
 package cz.cvut.fel.tasktest.screens
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import cz.cvut.fel.tasktest.CustomAppBar
 import cz.cvut.fel.tasktest.data.Tag
 import cz.cvut.fel.tasktest.data.Task
-import cz.cvut.fel.tasktest.data.TaskViewModel
+import cz.cvut.fel.tasktest.data.viewModels.TaskViewModel
 
 @Composable
 fun AllTasksScreen(drawerState: DrawerState, taskViewModel: TaskViewModel) {

@@ -5,6 +5,11 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import cz.cvut.fel.tasktest.data.repository.BoardDAO
+import cz.cvut.fel.tasktest.data.repository.SectionDAO
+import cz.cvut.fel.tasktest.data.repository.TagDAO
+import cz.cvut.fel.tasktest.data.repository.TaskDAO
+import cz.cvut.fel.tasktest.data.repository.UserDAO
 
 @Database(entities = [Task::class, Board::class, User::class, Tag::class, Section::class, Note::class], version = 2, exportSchema = false)
 @TypeConverters(Converters::class)

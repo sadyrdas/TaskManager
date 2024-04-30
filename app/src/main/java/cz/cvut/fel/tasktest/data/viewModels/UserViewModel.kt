@@ -1,9 +1,10 @@
-package cz.cvut.fel.tasktest.data
+package cz.cvut.fel.tasktest.data.viewModels
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cz.cvut.fel.tasktest.data.events.UserEvent
+import cz.cvut.fel.tasktest.data.repository.UserDAO
+import cz.cvut.fel.tasktest.data.states.UserState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -11,7 +12,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class UserViewModel(
-    private val userDAO: UserDAO):
+    private val userDAO: UserDAO
+):
     ViewModel() {
     val state = MutableStateFlow(UserState())
 

@@ -1,9 +1,8 @@
-package cz.cvut.fel.tasktest.data
+package cz.cvut.fel.tasktest.data.repository
 
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import cz.cvut.fel.tasktest.data.User
 
 @Dao
 interface UserDAO {

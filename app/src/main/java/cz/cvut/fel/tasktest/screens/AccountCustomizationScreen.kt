@@ -33,8 +33,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import cz.cvut.fel.tasktest.CustomAppBar
-import cz.cvut.fel.tasktest.data.UserEvent
-import cz.cvut.fel.tasktest.data.UserViewModel
+import cz.cvut.fel.tasktest.data.events.UserEvent
+import cz.cvut.fel.tasktest.data.viewModels.UserViewModel
 
 
 @Composable
