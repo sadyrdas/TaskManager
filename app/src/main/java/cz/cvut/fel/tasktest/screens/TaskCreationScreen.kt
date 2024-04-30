@@ -25,7 +25,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,12 +46,18 @@ import cz.cvut.fel.tasktest.data.viewModels.TaskViewModel
 @Composable
 fun TaskCreationScreen(drawerState: DrawerState, viewModel: BoardViewModel, taskViewModel: TaskViewModel, sectionViewModel: SectionViewModel) {
 
+    val selectedBoardId = remember { mutableStateOf<Long?>(null) }
+
+    // Функция для обновления списка секций после выбора доски
+    fun updateSections(boardId: Long) {
+        sectionViewModel.fetchSections(boardId)
+    }
+
     val boardsState by viewModel.state.collectAsState()
-    // Заполняем список items названиями бордов из состояния
-    val items = boardsState.boards.map { it.title }
-    val sectionList = boardsState.sections.map { it.title }
+    val boardsList = boardsState.boards.map { it.id }
 
     val sectionState by sectionViewModel.state.collectAsState()
+    val sectionList = sectionState.sections.map { it.id }
 
     Scaffold(
         topBar = {
@@ -70,13 +78,13 @@ fun TaskCreationScreen(drawerState: DrawerState, viewModel: BoardViewModel, task
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(16.dp)
             ) {
-                DropDown("Desk", items)
+                DropDownBoard("Desk",  viewModel) { selectedBoardId.value = it }
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(16.dp)
             ) {
-                DropDown("Section", sectionList)
+                DropDownSection("Section", sectionViewModel, selectedBoardId.value) { }
             }
 
             Column(modifier = Modifier
@@ -84,16 +92,18 @@ fun TaskCreationScreen(drawerState: DrawerState, viewModel: BoardViewModel, task
 
             )
             {
-                androidx.compose.material3.TextField(
-                    value = "AAAAAA",
-                    onValueChange = { },
+                TextField(
+                    value = "",
+                    placeholder = {Text(text = "Task name")},
+                    onValueChange = {  },
                     modifier = Modifier
                         .width(320.dp)
                         .padding(top = 16.dp)
                 )
-                androidx.compose.material3.TextField(
-                    value = "BBBBBB",
-                    onValueChange = { },
+                TextField(
+                    value = "",
+                    placeholder = {Text(text = "Description")},
+                    onValueChange = {  },
                     modifier = Modifier
                         .width(320.dp)
                         .padding(top = 16.dp)
@@ -154,7 +164,9 @@ fun TaskCreationScreen(drawerState: DrawerState, viewModel: BoardViewModel, task
                 )
 
                 Button(onClick = { taskViewModel.onEvent(TaskEvent.SaveTask) },
-                modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 50.dp)) {
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(top = 50.dp)) {
                     Text(text = "Save")
                 }
             }
@@ -165,10 +177,14 @@ fun TaskCreationScreen(drawerState: DrawerState, viewModel: BoardViewModel, task
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DropDown(label:String, items: List<String>){
+fun DropDownBoard(
+    label: String,
+    viewModel: BoardViewModel,
+    onItemSelected: (Long) -> Unit
+) {
     var isExpanded by remember { mutableStateOf(false) }
-
     var selectedText by remember { mutableStateOf("") }
+    val boards = viewModel.state.collectAsState().value.boards
 
     ExposedDropdownMenuBox(
         expanded = isExpanded,
@@ -177,9 +193,7 @@ fun DropDown(label:String, items: List<String>){
         TextField(
             value = selectedText,
             onValueChange = {},
-            label = { Text(text =label,
-                modifier = Modifier.padding(end = 8.dp))
-                    },
+            label = { Text(text = label, modifier = Modifier.padding(end = 8.dp)) },
             readOnly = true,
             modifier = Modifier
                 .menuAnchor()
@@ -188,19 +202,19 @@ fun DropDown(label:String, items: List<String>){
             colors = TextFieldDefaults.textFieldColors(
                 backgroundColor = Color.Transparent
             )
-
         )
 
         ExposedDropdownMenu(
             expanded = isExpanded,
-            onDismissRequest = { isExpanded = false},
+            onDismissRequest = { isExpanded = false },
         ) {
-            items.forEachIndexed { index, text ->
+            boards.forEachIndexed { index, board ->
                 DropdownMenuItem(
-                    text = { Text(text = text) },
+                    text = { Text(text = board.title) },
                     onClick = {
-                        selectedText = items[index]
+                        selectedText = boards[index].title
                         isExpanded = false
+                        onItemSelected(boards[index].id) // Вызываем обработчик выбора элемента
                     },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                 )
@@ -209,3 +223,58 @@ fun DropDown(label:String, items: List<String>){
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DropDownSection(
+    label: String,
+    viewModel: SectionViewModel,
+    boardId: Long?,
+    onItemSelected: (Long) -> Unit
+) {
+    var isExpanded by remember { mutableStateOf(false) }
+    var selectedText by remember { mutableStateOf("") }
+    val sections = viewModel.state.collectAsState().value.sections
+
+    // Функция для обновления списка секций после выбора доски
+    LaunchedEffect(boardId) {
+        if (boardId != null) {
+            viewModel.fetchSections(boardId)
+        }
+    }
+
+    ExposedDropdownMenuBox(
+        expanded = isExpanded,
+        onExpandedChange = { isExpanded = it })
+    {
+        TextField(
+            value = selectedText,
+            onValueChange = {},
+            label = { Text(text = label, modifier = Modifier.padding(end = 8.dp)) },
+            readOnly = true,
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth(),
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = Color.Transparent
+            )
+        )
+
+        ExposedDropdownMenu(
+            expanded = isExpanded,
+            onDismissRequest = { isExpanded = false },
+        ) {
+            sections.forEachIndexed { index, section ->
+                DropdownMenuItem(
+                    text = { Text(text = section.title) },
+                    onClick = {
+                        selectedText = sections[index].title
+                        isExpanded = false
+                        onItemSelected(sections[index].id) // Вызываем обработчик выбора элемента
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                )
+            }
+        }
+    }
+}
