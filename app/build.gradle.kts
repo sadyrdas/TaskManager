@@ -79,7 +79,7 @@ dependencies {
     implementation("com.github.skydoves:colorpicker-compose:1.0.0")
     implementation("androidx.compose.material:material:x.y.z")
 
-        //Dependency for Room(database)
+    //Dependency for Room(database)
     implementation("androidx.room:room-runtime:$room_version")
     kapt("androidx.room:room-compiler:$room_version")
     implementation("androidx.room:room-ktx:$room_version")

@@ -11,13 +11,14 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.room.Room
-import com.jetpackcompose.navigation.ui.theme.JetpackComposeDrawerNavigationTheme
 import cz.cvut.fel.tasktest.data.viewModels.BoardViewModel
 import cz.cvut.fel.tasktest.data.viewModels.SectionViewModel
 import cz.cvut.fel.tasktest.data.viewModels.TagViewModel
 import cz.cvut.fel.tasktest.data.viewModels.TaskViewModel
 import cz.cvut.fel.tasktest.data.TaskifyDatabase
 import cz.cvut.fel.tasktest.data.viewModels.UserViewModel
+import cz.cvut.fel.tasktest.ui.theme.JetpackComposeDrawerNavigationTheme
+
 
 class MainActivity : ComponentActivity() {
 
@@ -28,6 +29,7 @@ class MainActivity : ComponentActivity() {
             "tasktest-db"
         ).build()
     }
+
     private val viewModel by viewModels<BoardViewModel>(
         factoryProducer ={
             object: ViewModelProvider.Factory{

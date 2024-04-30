@@ -31,18 +31,16 @@ class TaskViewModel(
                 val description = _state.value.description
                 val dateStart = _state.value.dateStart
                 val dateEnd = _state.value.dateEnd
-                val cover = _state.value.cover
                 val sectionid = _state.value.sectionid
-                val tagId = _state.value.tagId
                 val task = Task(title = title, description = description,
-                    startDate = converters.dateToTimestamp(dateStart) ,
-                    endDate = converters.dateToTimestamp(dateEnd),
-                    cover = cover, sectionId = sectionid, tagId = tagId
+                    startDate = dateStart,
+                    endDate = dateEnd,
+                    sectionId = sectionid
                     )
                 viewModelScope.launch(Dispatchers.IO) {
                     taskDAO.insertTask(task)
                     launch(Dispatchers.Main) {
-                        _state.update { it.copy(title = "", description = "", dateStart = Date(), dateEnd = Date()) }
+                        _state.update { it.copy(title = "", description = "", dateStart = "", dateEnd = "") }
                     }
                 }
             }

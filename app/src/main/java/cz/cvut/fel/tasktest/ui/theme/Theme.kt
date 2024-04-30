@@ -1,4 +1,4 @@
-package com.jetpackcompose.navigation.ui.theme
+package cz.cvut.fel.tasktest.ui.theme
 
 import android.app.Activity
 import android.os.Build
@@ -22,9 +22,9 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    primary = Primary,
+    secondary = Secondary,
+    tertiary = Ternary
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),

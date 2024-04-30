@@ -10,8 +10,8 @@ sealed interface TaskEvent {
     data class SetTaskName(val name: String) : TaskEvent
     data class SetTaskDescription(val description: String) : TaskEvent
     data class SetTaskTag(val tag: Tag) : TaskEvent
-    data class SetTaskDateStart(val dateStart: Date) : TaskEvent
-    data class SetTaskDateEnd(val dateEnd: Date) : TaskEvent
+    data class SetTaskDateStart(val dateStart: String) : TaskEvent
+    data class SetTaskDateEnd(val dateEnd: String) : TaskEvent
     data class AddTaskComment(val comment: Note) : TaskEvent
     data class DeleteTaskComment(val comment: Note) : TaskEvent
     data class DeleteTaskTag(val tag: Tag) : TaskEvent

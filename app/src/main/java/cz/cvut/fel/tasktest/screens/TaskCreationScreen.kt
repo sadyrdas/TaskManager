@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.TextField
-import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Close
@@ -26,38 +24,42 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import cz.cvut.fel.tasktest.CustomAppBar
+import cz.cvut.fel.tasktest.MainRoute
 import cz.cvut.fel.tasktest.data.viewModels.BoardViewModel
 import cz.cvut.fel.tasktest.data.viewModels.SectionViewModel
 import cz.cvut.fel.tasktest.data.events.TaskEvent
 import cz.cvut.fel.tasktest.data.viewModels.TaskViewModel
+import java.util.Date
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskCreationScreen(drawerState: DrawerState, viewModel: BoardViewModel, taskViewModel: TaskViewModel, sectionViewModel: SectionViewModel) {
+fun TaskCreationScreen(navController: NavHostController, drawerState: DrawerState, viewModel: BoardViewModel, taskViewModel: TaskViewModel, sectionViewModel: SectionViewModel) {
 
     val selectedBoardId = remember { mutableStateOf<Long?>(null) }
+    val taskState by taskViewModel.state.collectAsState()
 
-    // Функция для обновления списка секций после выбора доски
-    fun updateSections(boardId: Long) {
-        sectionViewModel.fetchSections(boardId)
-    }
 
-    val boardsState by viewModel.state.collectAsState()
-    val boardsList = boardsState.boards.map { it.id }
-
-    val sectionState by sectionViewModel.state.collectAsState()
-    val sectionList = sectionState.sections.map { it.id }
+    var openDatePicker by remember { mutableStateOf(false) }
+    var openEndDatePicker by remember { mutableStateOf(false) }
+    var selectedStartDate by remember { mutableStateOf<Date?>(null) }
+    var selectedEndDate by remember { mutableStateOf<Date?>(null) }
 
     Scaffold(
         topBar = {
@@ -84,7 +86,7 @@ fun TaskCreationScreen(drawerState: DrawerState, viewModel: BoardViewModel, task
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(16.dp)
             ) {
-                DropDownSection("Section", sectionViewModel, selectedBoardId.value) { }
+                DropDownSection("Section",sectionViewModel, taskViewModel, selectedBoardId.value) { }
             }
 
             Column(modifier = Modifier
@@ -93,17 +95,19 @@ fun TaskCreationScreen(drawerState: DrawerState, viewModel: BoardViewModel, task
             )
             {
                 TextField(
-                    value = "",
+                    value = taskState.title,
                     placeholder = {Text(text = "Task name")},
-                    onValueChange = {  },
+                    onValueChange = { newTaskName ->
+                        taskViewModel.onEvent(TaskEvent.SetTaskName(newTaskName))},
                     modifier = Modifier
                         .width(320.dp)
                         .padding(top = 16.dp)
                 )
                 TextField(
-                    value = "",
+                    value = taskState.description,
                     placeholder = {Text(text = "Description")},
-                    onValueChange = {  },
+                    onValueChange = { newDescription ->
+                        taskViewModel.onEvent(TaskEvent.SetTaskDescription(newDescription))},
                     modifier = Modifier
                         .width(320.dp)
                         .padding(top = 16.dp)
@@ -126,13 +130,64 @@ fun TaskCreationScreen(drawerState: DrawerState, viewModel: BoardViewModel, task
                     )
                     Column {
                         Text(
-                            text = "Starting..",
-                            modifier = Modifier.padding(bottom = 4.dp),
+                            text = selectedStartDate?.toString() ?: "Starting..", // Display the selected date or "Starting.." if null
+                            modifier = Modifier
+                                .padding(bottom = 4.dp)
+                                .clickable(onClick = { openDatePicker = true }),
                         )
                         Divider(modifier = Modifier
                             .padding(bottom = 4.dp)
                             .width(250.dp))
-                        Text(text = "Date of end")
+                        Text(
+                            text = selectedEndDate?.toString() ?: "Date of end", // Display the selected end date or "Date of end" if null
+                            modifier = Modifier
+                                .padding(bottom = 4.dp)
+                                .clickable(onClick = { openEndDatePicker = true }),
+                        )
+                    }
+                    if (openDatePicker) {
+                        val datePickerState = rememberDatePickerState()
+                        val confirmEnabled = remember {derivedStateOf { datePickerState.selectedDateMillis != null }}
+                        DatePickerDialog(
+                            onDismissRequest = { openDatePicker = false },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    openDatePicker = false
+                                    selectedStartDate = datePickerState.selectedDateMillis?.let { Date(it) }
+                                    taskViewModel.onEvent(TaskEvent.SetTaskDateStart(selectedStartDate.toString()))
+                                },
+                                    enabled = confirmEnabled.value
+                                ) {
+                                    Text("Confirm")
+                                }
+                            }) {
+                            DatePicker(
+                                state = datePickerState,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
+                    }
+                    if (openEndDatePicker) {
+                        val datePickerState = rememberDatePickerState()
+                        val confirmEnabled = remember {derivedStateOf { datePickerState.selectedDateMillis != null }}
+                        DatePickerDialog(
+                            onDismissRequest = { openEndDatePicker = false },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    openEndDatePicker = false
+                                    selectedEndDate = datePickerState.selectedDateMillis?.let { Date(it) }
+                                    taskViewModel.onEvent(TaskEvent.SetTaskDateEnd(selectedEndDate.toString()))
+                                },
+                                    enabled = confirmEnabled.value
+                                ) {
+                                    Text("Confirm")
+                                }
+                            }) {
+                            DatePicker(
+                                state = datePickerState,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
                     }
                 }
                 Divider(
@@ -163,7 +218,10 @@ fun TaskCreationScreen(drawerState: DrawerState, viewModel: BoardViewModel, task
                         .height(3.dp)
                 )
 
-                Button(onClick = { taskViewModel.onEvent(TaskEvent.SaveTask) },
+
+                Button(onClick = {
+                    taskViewModel.onEvent(TaskEvent.SaveTask)
+                    navController.navigate("${MainRoute.CurrentBoard.name}/${selectedBoardId.value}") },
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(top = 50.dp)) {
@@ -198,10 +256,7 @@ fun DropDownBoard(
             modifier = Modifier
                 .menuAnchor()
                 .fillMaxWidth(),
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
-            colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = Color.Transparent
-            )
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) }
         )
 
         ExposedDropdownMenu(
@@ -228,12 +283,14 @@ fun DropDownBoard(
 fun DropDownSection(
     label: String,
     viewModel: SectionViewModel,
+    taskViewModel: TaskViewModel,
     boardId: Long?,
     onItemSelected: (Long) -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(false) }
     var selectedText by remember { mutableStateOf("") }
     val sections = viewModel.state.collectAsState().value.sections
+    val taskState by taskViewModel.state.collectAsState()
 
     // Функция для обновления списка секций после выбора доски
     LaunchedEffect(boardId) {
@@ -254,10 +311,7 @@ fun DropDownSection(
             modifier = Modifier
                 .menuAnchor()
                 .fillMaxWidth(),
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
-            colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = Color.Transparent
-            )
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) }
         )
 
         ExposedDropdownMenu(
@@ -271,6 +325,7 @@ fun DropDownSection(
                         selectedText = sections[index].title
                         isExpanded = false
                         onItemSelected(sections[index].id) // Вызываем обработчик выбора элемента
+                        taskState.sectionid = sections[index].id
                     },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                 )

@@ -1,4 +1,4 @@
-package com.jetpackcompose.navigation.ui.theme
+package cz.cvut.fel.tasktest.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

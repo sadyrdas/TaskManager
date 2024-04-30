@@ -3,6 +3,7 @@ package cz.cvut.fel.tasktest.data
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import java.util.Date
 
 @Entity(tableName = "task", foreignKeys = [ForeignKey(entity = Section::class, parentColumns = arrayOf("id"), childColumns = arrayOf("sectionId"), onDelete = ForeignKey.CASCADE),
                                             ForeignKey(entity = Tag::class, parentColumns = arrayOf("id"), childColumns = arrayOf("tagId"), onDelete = ForeignKey.CASCADE)])
@@ -10,11 +11,11 @@ data class Task(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val title: String,
     val description: String,
-    val startDate: Long? = null,
-    val endDate: Long? = null,
+    val startDate: String? = null,
+    val endDate: String? = null,
     val sectionId: Long,
-    val tagId: Long,
-    val cover: String
+    val tagId: Long? = null,
+    val cover: String? = ""
 )
 
 @Entity(tableName = "note")

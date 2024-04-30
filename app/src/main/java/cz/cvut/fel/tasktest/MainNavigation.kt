@@ -158,7 +158,7 @@ fun MainNavigation(
                 TagCreationScreen(drawerState, viewTagModel)
             }
             composable(MainRoute.TaskCreation.name){
-                TaskCreationScreen(drawerState, viewModel, taskViewModel, sectionViewModel)
+                TaskCreationScreen(navController,drawerState, viewModel, taskViewModel, sectionViewModel)
             }
             composable(MainRoute.AllTasks.name) {
                 AllTasksScreen(drawerState, taskViewModel)
