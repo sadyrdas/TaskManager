@@ -23,6 +23,16 @@ class SectionViewModel (
     val state: StateFlow<SectionState> = _state.asStateFlow()
     val converters = Converters()
 
+
+    fun fetchSections(boardId:Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val sections = sectionDAO.getSectionsByBoardId(boardId)
+            _state.update { currentState ->
+                currentState.copy(sections = sections)
+            }
+        }
+    }
+
     fun onEvent(event: SectionEvent) {
         when (event) {
             is SectionEvent.SaveSection -> {

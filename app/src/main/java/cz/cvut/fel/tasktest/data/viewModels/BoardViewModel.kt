@@ -2,6 +2,7 @@ package cz.cvut.fel.tasktest.data.viewModels
 
 import android.content.Context
 import android.net.Uri
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cz.cvut.fel.tasktest.data.Board
@@ -19,13 +20,18 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.util.UUID
+import androidx.compose.runtime.State
+import kotlinx.coroutines.flow.stateIn
 
 class BoardViewModel(
-    private val boardDAO: BoardDAO
+    private val boardDAO: BoardDAO,
 ) : ViewModel() {
     private val _state = MutableStateFlow(BoardState())
+
     private var currentSortState: SortTypeForBoard = SortTypeForBoard.UNSORTED
     val state: StateFlow<BoardState> = _state.asStateFlow()
+    private val _boardState = mutableStateOf<BoardState?>(null)
+    val boardState: State<BoardState?> = _boardState
 
     init {
         fetchBoards() // Fetch boards when ViewModel is initialized
@@ -45,6 +51,17 @@ class BoardViewModel(
         }
     }
 
+    fun getBoardState(boardId: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            // Fetch the board data from the repository based on the boardId
+            val boardData = boardDAO.getById(boardId)
+            // Convert Board to BoardState
+            val boardState = BoardState(boardData.title)
+            // Update the _boardState mutable state
+            _boardState.value = boardState
+        }
+    }
+
     fun sortBoardsByTitleAsc() {
         if (currentSortState != SortTypeForBoard.SORTED_BY_TITLE_ASC) {
             currentSortState = SortTypeForBoard.SORTED_BY_TITLE_ASC
@@ -60,6 +77,13 @@ class BoardViewModel(
             }
         }
     }
+
+    suspend fun getBoardById(id: Long): Board {
+        return withContext(Dispatchers.IO) {
+            boardDAO.getById(id)
+        }
+    }
+
 
     private suspend fun saveImageToInternalStorage(context: Context, uri: Uri): String {
         val inputStream = context.contentResolver.openInputStream(uri)

@@ -15,16 +15,38 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cz.cvut.fel.tasktest.CustomAppBar
+import cz.cvut.fel.tasktest.data.Board
+import cz.cvut.fel.tasktest.data.events.SectionEvent
+import cz.cvut.fel.tasktest.data.repository.BoardDAO
+import cz.cvut.fel.tasktest.data.viewModels.BoardViewModel
+import cz.cvut.fel.tasktest.data.viewModels.SectionViewModel
 
 @Composable
-fun SectionCreationScreen(drawerState: DrawerState) {
+fun SectionCreationScreen(drawerState: DrawerState, boardId:Long, viewModel: BoardViewModel, viewSectionModel: SectionViewModel) {
 
-    val deskName = "Desk name"
+
+    var boardState by remember { mutableStateOf<Board?>(null) }
+    val sectionState by viewSectionModel.state.collectAsState()
+
+    LaunchedEffect(boardId) {
+        val board = viewModel.getBoardById(boardId)
+        boardState = board
+    }
+
+    boardState?.let { board ->
+        val deskName = board.title
+    }
 
     Scaffold(
         topBar = {
@@ -38,20 +60,22 @@ fun SectionCreationScreen(drawerState: DrawerState) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             androidx.compose.material3.Text(
-                text = "Section of desk ${deskName}",
+                text = "Section of desk ${boardState?.title ?: ""}",
                 modifier = Modifier
                     .padding(top = 40.dp)
                     .align(Alignment.CenterHorizontally),
             )
+            sectionState.deskId = boardId
             TextField(
-                value = "Name of section",
-                onValueChange = {},
+                value = sectionState.title,
+                placeholder = { Text("Name of section") },
+                onValueChange = {newNameOfSection -> viewSectionModel.onEvent(SectionEvent.SetSectionName(newNameOfSection))},
                 modifier = Modifier
                     .padding(top = 16.dp)
                     .border(1.dp, MaterialTheme.colorScheme.primaryContainer, MaterialTheme.shapes.small)
             )
             Button(
-                onClick = {},
+                onClick = {viewSectionModel.onEvent(SectionEvent.SaveSection)},
                 modifier = Modifier
                     .padding(top = 560.dp)
             ) {
@@ -60,10 +84,4 @@ fun SectionCreationScreen(drawerState: DrawerState) {
         }
     }
 
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SectionCreationScreenPreview() {
-    SectionCreationScreen(drawerState = DrawerState(DrawerValue.Closed))
 }

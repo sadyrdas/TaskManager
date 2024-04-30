@@ -42,6 +42,8 @@ import cz.cvut.fel.tasktest.screens.AllTasksScreen
 
 import cz.cvut.fel.tasktest.screens.ArticlesScreen
 import cz.cvut.fel.tasktest.screens.BoardCreationScreen
+import cz.cvut.fel.tasktest.screens.CurrentBoardScreen
+import cz.cvut.fel.tasktest.screens.SectionCreationScreen
 import cz.cvut.fel.tasktest.screens.SettingsScreen
 import cz.cvut.fel.tasktest.screens.TagCreationScreen
 import cz.cvut.fel.tasktest.screens.TaskCreationScreen
@@ -56,7 +58,9 @@ enum class MainRoute(value: String) {
     BoardCreation("boardCreation"),
     TagCreation("tagCreation"),
     TaskCreation("taskCreation"),
-    AllTasks("allTasks")
+    AllTasks("allTasks"),
+    CurrentBoard("currentBoard"),
+    SectionCreation("sectionCreation")
 }
 
 private data class DrawerMenu(val id: Int, val title: String, val route: String)
@@ -117,7 +121,8 @@ fun MainNavigation(
     viewTagModel: TagViewModel,
     navController: NavHostController = rememberNavController(),
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
-    drawerState: DrawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    drawerState: DrawerState = rememberDrawerState(initialValue = DrawerValue.Closed),
+    boardId:Long = viewModel.state.value.id
 ) {
 
     ModalNavigationDrawer(
@@ -157,6 +162,19 @@ fun MainNavigation(
             }
             composable(MainRoute.AllTasks.name) {
                 AllTasksScreen(drawerState, taskViewModel)
+            }
+            composable(route = "${MainRoute.CurrentBoard.name}/{boardId}") { backStackEntry ->
+                val boardId = backStackEntry.arguments?.getString("boardId")?.toLong()
+                boardId?.let {
+                    // Создайте экран для отображения определенного борда с использованием boardId
+                    CurrentBoardScreen(navController, drawerState, viewModel, sectionViewModel, it)
+                }
+            }
+            composable(route = "${MainRoute.SectionCreation.name}/{boardId}") { backStackEntry ->
+                val boardId = backStackEntry.arguments?.getString("boardId")?.toLong()
+                boardId?.let {
+                    SectionCreationScreen(drawerState, boardId, viewModel, sectionViewModel)
+                }
             }
         }
     }

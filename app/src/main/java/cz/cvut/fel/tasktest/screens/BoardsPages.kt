@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -116,6 +117,7 @@ fun ArticlesScreen(navController: NavHostController, viewModel: BoardViewModel, 
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp) // Отступы !!!
+                        .clickable{ navController.navigate("${MainRoute.CurrentBoard.name}/${board.id}") }
                 ) {
                     AsyncImage(
                         model = board.background,
@@ -126,6 +128,7 @@ fun ArticlesScreen(navController: NavHostController, viewModel: BoardViewModel, 
                     Text(text = board.title,
                         fontSize = MaterialTheme.typography.bodyLarge.fontSize,
                         modifier = Modifier.weight(1f))
+                    Spacer(modifier = Modifier.width(8.dp))
 
                     if (showConfirmDialogAboutDeleteBoard){
                         AlertDialog(

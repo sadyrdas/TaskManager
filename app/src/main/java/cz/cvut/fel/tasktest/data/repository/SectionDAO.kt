@@ -19,4 +19,7 @@ interface SectionDAO {
     @Delete
     fun delete(section: Section)
 
+    @Query("SELECT * FROM section WHERE boardId = :boardId")
+    fun getSectionsByBoardId(boardId: Long): List<Section>
+
 }
