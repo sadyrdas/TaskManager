@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.github.skydoves.colorpicker.compose.AlphaTile
 import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
@@ -52,7 +53,7 @@ import cz.cvut.fel.tasktest.data.viewModels.TagViewModel
 
 
 @Composable
-fun TagCreationScreen(drawerState: DrawerState, viewModel: TagViewModel){
+fun TagCreationScreen(navController: NavHostController, drawerState: DrawerState, viewModel: TagViewModel){
     val focusManager = LocalFocusManager.current
     val state by viewModel.state.collectAsState()
     val backgroundColor = remember { mutableStateOf(Color.White) }
@@ -74,7 +75,11 @@ fun TagCreationScreen(drawerState: DrawerState, viewModel: TagViewModel){
     var showColorPicker by remember { mutableStateOf(false) }
 
     Scaffold(
-        topBar = { CustomAppBar(drawerState = drawerState, title = "Create Tag", backgroundColor = MaterialTheme.colorScheme.primary , imageVector = Icons.Default.ArrowBack)},
+        topBar = { CustomAppBar(drawerState = drawerState,
+            title = "Create Tag",
+            backgroundColor = MaterialTheme.colorScheme.primary ,
+            imageVector = Icons.Default.ArrowBack,
+            navigationAction = {navController.popBackStack()} )}
     ) {paddingValues ->
         Column(
             modifier = Modifier

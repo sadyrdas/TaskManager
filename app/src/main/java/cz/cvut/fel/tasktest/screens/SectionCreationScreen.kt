@@ -25,7 +25,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import cz.cvut.fel.tasktest.CustomAppBar
+import cz.cvut.fel.tasktest.MainRoute
 import cz.cvut.fel.tasktest.data.Board
 import cz.cvut.fel.tasktest.data.events.SectionEvent
 import cz.cvut.fel.tasktest.data.repository.BoardDAO
@@ -33,7 +35,7 @@ import cz.cvut.fel.tasktest.data.viewModels.BoardViewModel
 import cz.cvut.fel.tasktest.data.viewModels.SectionViewModel
 
 @Composable
-fun SectionCreationScreen(drawerState: DrawerState, boardId:Long, viewModel: BoardViewModel, viewSectionModel: SectionViewModel) {
+fun SectionCreationScreen(navController: NavHostController,drawerState: DrawerState, boardId:Long, viewModel: BoardViewModel, viewSectionModel: SectionViewModel) {
 
 
     var boardState by remember { mutableStateOf<Board?>(null) }
@@ -44,14 +46,14 @@ fun SectionCreationScreen(drawerState: DrawerState, boardId:Long, viewModel: Boa
         boardState = board
     }
 
-    boardState?.let { board ->
-        val deskName = board.title
-    }
 
     Scaffold(
         topBar = {
-            CustomAppBar(drawerState = drawerState, title = "Create section",
-                backgroundColor = MaterialTheme.colorScheme.primaryContainer , imageVector = Icons.Default.Close )
+            CustomAppBar(drawerState = drawerState,
+                title = "Create section",
+                backgroundColor = MaterialTheme.colorScheme.primaryContainer ,
+                imageVector = Icons.Default.Close,
+                navigationAction = { navController.navigate("${MainRoute.CurrentBoard.name}/${boardId}") })
         }
     ) { paddingValues ->
         Column(

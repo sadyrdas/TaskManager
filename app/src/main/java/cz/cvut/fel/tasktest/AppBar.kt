@@ -23,7 +23,7 @@ import cz.cvut.fel.tasktest.ui.theme.JetpackComposeDrawerNavigationTheme
 import kotlinx.coroutines.launch
 
 @Composable
-fun CustomAppBar(drawerState: DrawerState?, title: String, backgroundColor: Color, imageVector: ImageVector) {
+fun CustomAppBar(drawerState: DrawerState?, title: String, backgroundColor: Color, imageVector: ImageVector,navigationAction: (() -> Unit)? = null) {
     val coroutineScope = rememberCoroutineScope()
 
     Surface(
@@ -32,15 +32,23 @@ fun CustomAppBar(drawerState: DrawerState?, title: String, backgroundColor: Colo
         CenterAlignedTopAppBar(
             backgroundColor = backgroundColor,
             navigationIcon = {
-                if (drawerState != null) {
+                if (navigationAction != null) {
+                    IconButton(onClick = navigationAction) {
+                        Icon(
+                            imageVector = imageVector,
+                            contentDescription = ""
+                        )
+                    }
+                } else {
                     IconButton(onClick = {
                         coroutineScope.launch {
-                            drawerState.open()
+                            drawerState?.open()
                         }
                     }) {
                         Icon(
                             imageVector = imageVector,
-                            contentDescription = "")
+                            contentDescription = ""
+                        )
                     }
                 }
             },

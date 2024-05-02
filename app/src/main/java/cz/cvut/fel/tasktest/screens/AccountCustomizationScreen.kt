@@ -32,17 +32,20 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import cz.cvut.fel.tasktest.CustomAppBar
 import cz.cvut.fel.tasktest.data.events.UserEvent
 import cz.cvut.fel.tasktest.data.viewModels.UserViewModel
 
 
 @Composable
-fun AccountCustomizationScreen(drawerState: DrawerState, viewModel : UserViewModel) {
+fun AccountCustomizationScreen(navController: NavHostController, drawerState: DrawerState, viewModel : UserViewModel) {
     val state by viewModel.state.collectAsState()
     Scaffold(
         topBar = { CustomAppBar(drawerState = drawerState, title = "YourAccount",
-            backgroundColor = MaterialTheme.colorScheme.primary , imageVector = Icons.Default.ArrowBack)})
+            backgroundColor = MaterialTheme.colorScheme.primary ,
+            imageVector = Icons.Default.ArrowBack,
+            navigationAction = {navController.popBackStack()} )})
     { paddingValues ->
         Column(
             modifier = Modifier

@@ -45,15 +45,17 @@ import cz.cvut.fel.tasktest.MainRoute
 import cz.cvut.fel.tasktest.data.viewModels.BoardViewModel
 import cz.cvut.fel.tasktest.data.viewModels.SectionViewModel
 import cz.cvut.fel.tasktest.data.events.TaskEvent
+import cz.cvut.fel.tasktest.data.viewModels.TagViewModel
 import cz.cvut.fel.tasktest.data.viewModels.TaskViewModel
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskCreationScreen(navController: NavHostController, drawerState: DrawerState, viewModel: BoardViewModel, taskViewModel: TaskViewModel, sectionViewModel: SectionViewModel) {
+fun TaskCreationScreen(navController: NavHostController, drawerState: DrawerState, viewModel: BoardViewModel, taskViewModel: TaskViewModel, sectionViewModel: SectionViewModel, tagViewModel: TagViewModel) {
 
     val selectedBoardId = remember { mutableStateOf<Long?>(null) }
     val taskState by taskViewModel.state.collectAsState()
+    val tagState by tagViewModel.state.collectAsState()
 
 
     var openDatePicker by remember { mutableStateOf(false) }
@@ -112,6 +114,15 @@ fun TaskCreationScreen(navController: NavHostController, drawerState: DrawerStat
                         .width(320.dp)
                         .padding(top = 16.dp)
                 )
+                Divider(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp)
+                        .height(3.dp)
+                )
+                Row {
+
+                }
                 Divider(
                     modifier = Modifier
                         .fillMaxWidth()

@@ -4,6 +4,7 @@ import cz.cvut.fel.tasktest.data.Section
 import cz.cvut.fel.tasktest.data.Task
 
 data class SectionState (
+    val id: Long = 0,
     val title: String = "",
     var deskId: Long = 0,
     val tasks: List<Task> = emptyList(),

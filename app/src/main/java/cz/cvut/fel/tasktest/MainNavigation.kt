@@ -149,16 +149,16 @@ fun MainNavigation(
                 SettingsScreen(navController,drawerState)
             }
             composable(MainRoute.AccountCustomization.name){
-                AccountCustomizationScreen(drawerState, viewUserModel)
+                AccountCustomizationScreen(navController, drawerState, viewUserModel)
             }
             composable(MainRoute.BoardCreation.name){
                 BoardCreationScreen(drawerState,viewModel, navController)
             }
             composable(MainRoute.TagCreation.name){
-                TagCreationScreen(drawerState, viewTagModel)
+                TagCreationScreen(navController, drawerState, viewTagModel)
             }
             composable(MainRoute.TaskCreation.name){
-                TaskCreationScreen(navController,drawerState, viewModel, taskViewModel, sectionViewModel)
+                TaskCreationScreen(navController,drawerState, viewModel, taskViewModel, sectionViewModel, viewTagModel)
             }
             composable(MainRoute.AllTasks.name) {
                 AllTasksScreen(drawerState, taskViewModel)
@@ -167,13 +167,13 @@ fun MainNavigation(
                 val boardId = backStackEntry.arguments?.getString("boardId")?.toLong()
                 boardId?.let {
                     // Создайте экран для отображения определенного борда с использованием boardId
-                    CurrentBoardScreen(navController, drawerState, viewModel, sectionViewModel, it)
+                    CurrentBoardScreen(navController, drawerState, viewModel, sectionViewModel, it, taskViewModel)
                 }
             }
             composable(route = "${MainRoute.SectionCreation.name}/{boardId}") { backStackEntry ->
                 val boardId = backStackEntry.arguments?.getString("boardId")?.toLong()
                 boardId?.let {
-                    SectionCreationScreen(drawerState, boardId, viewModel, sectionViewModel)
+                    SectionCreationScreen(navController,drawerState, boardId, viewModel, sectionViewModel)
                 }
             }
         }

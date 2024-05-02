@@ -24,6 +24,15 @@ class TaskViewModel(
     val state: StateFlow<TaskState> = _state.asStateFlow()
     val converters = Converters()
 
+    fun fetchTasks() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val tasks = taskDAO.getAllTasks()
+            launch(Dispatchers.Main) {
+                _state.update { it.copy(tasks = tasks) }
+            }
+        }
+    }
+
     fun onEvent(event: TaskEvent) {
         when (event) {
             is TaskEvent.SaveTask -> {
