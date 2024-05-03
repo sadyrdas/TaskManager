@@ -8,6 +8,7 @@ import java.util.Date
 data class TaskState (
     val title: String = "",
     val description: String = "",
+    val id : Long = 0,
     val comments: List<Note> = emptyList(),
     val dateStart: String = "",
     val dateEnd: String = "",
