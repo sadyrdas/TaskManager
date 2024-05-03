@@ -137,7 +137,7 @@ fun CurrentBoardScreen(navController: NavHostController, drawerState: DrawerStat
                                         .height(120.dp)
                                         .align(Alignment.CenterHorizontally)
                                 ) {
-                                    TaskCard(task, navController)
+                                    TaskCard(task, navController, taskViewModel, task.id)
                                 }
                             }
                         }
@@ -200,10 +200,24 @@ fun FloatingButton(navController: NavHostController, boardId: Long) {
 }
 
 @Composable
-fun TaskCard(task: Task, navController: NavHostController) {
+fun TaskCard(task: Task, navController: NavHostController, taskViewModel: TaskViewModel, taskId: Long) {
+    LaunchedEffect(taskId) {
+        taskViewModel.fetchTagsForTask(taskId)
+    }
+
+    // Observe tags for the task
+    val tagsForTask by taskViewModel.tagsForTask.collectAsState()
     Column {
-        Row {
-            /*TODO Add tags*/
+        Row(modifier = Modifier.padding(start = 16.dp, top = 8.dp)) {
+            tagsForTask.forEach { tag ->
+                Text(
+                    tag.name,
+                    modifier = Modifier
+                        .padding(end = 8.dp) // Add padding between tags
+                        .background(Color(android.graphics.Color.parseColor(tag.background)))
+                )
+                // You can customize the UI to display tags as you prefer
+            }
         }
         Row(modifier = Modifier.padding(top = 40.dp)) {
             Text(text = task.title, modifier = Modifier

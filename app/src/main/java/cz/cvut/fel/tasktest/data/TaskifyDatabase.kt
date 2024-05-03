@@ -11,7 +11,7 @@ import cz.cvut.fel.tasktest.data.repository.TagDAO
 import cz.cvut.fel.tasktest.data.repository.TaskDAO
 import cz.cvut.fel.tasktest.data.repository.UserDAO
 
-@Database(entities = [Task::class, Board::class, User::class, Tag::class, Section::class, Note::class], version = 2, exportSchema = false)
+@Database(entities = [Task::class, Board::class, User::class, Tag::class, Section::class, Note::class, TaskTagCrossRef::class], version = 2, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class TaskifyDatabase : RoomDatabase() {
     abstract fun taskDao(): TaskDAO

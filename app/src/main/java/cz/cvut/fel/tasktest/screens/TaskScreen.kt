@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
@@ -31,6 +33,7 @@ import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Divider
@@ -50,6 +53,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,8 +69,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
+import cz.cvut.fel.tasktest.data.Tag
 import cz.cvut.fel.tasktest.data.events.BoardEvent
 import cz.cvut.fel.tasktest.data.events.TaskEvent
+import cz.cvut.fel.tasktest.data.viewModels.TagViewModel
 import cz.cvut.fel.tasktest.data.viewModels.TaskViewModel
 import cz.cvut.fel.tasktest.ui.theme.Primary
 import kotlinx.coroutines.launch
@@ -75,7 +81,7 @@ import java.util.Date
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, navController: NavController, taskId:Long) {
+fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewModel: TagViewModel, navController: NavController, taskId:Long) {
     var isEditingDescription by remember { mutableStateOf(false) }
     var isDropdownExpanded by remember { mutableStateOf(false) }
     var isDrawerOpen by remember { mutableStateOf(false) }
@@ -100,8 +106,29 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, navContro
     val dataEnd:String = taskState?.dateEnd ?: "Ending"
 
     LaunchedEffect(taskId) {
+        taskViewModel.fetchTagsForTask(taskId)
+    }
+
+    // Observe tags for the task
+    val tagsForTask by taskViewModel.tagsForTask.collectAsState()
+
+
+    LaunchedEffect(taskId) {
         taskViewModel.getTaskState(taskId)
     }
+    LaunchedEffect(key1 = true) { // key1 = true ensures this only runs once when the composable enters the composition
+        tagViewModel.fetchTags() // Call fetch boards if not automatically handled in ViewModel init
+    }
+
+
+    // State to manage dialog visibility
+    var isDialogOpen by remember { mutableStateOf(false) }
+
+    // Function to open/close the dialog
+    fun toggleDialog() {
+        isDialogOpen = !isDialogOpen
+    }
+
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
         onResult = { uri: Uri? ->
@@ -293,14 +320,41 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, navContro
                     .fillMaxWidth()
                     .padding(start = 16.dp, top = 16.dp)
             ) {
-                Icon(
-                    Icons.Filled.Warning, contentDescription = "Tag Icon",
-                    modifier = Modifier.padding(end = 16.dp)
-                )
-                Text(
-                    text = "Tags..",
-                    modifier = Modifier.clickable { /*...*/ }
-                )
+                Column {
+                    Button(
+                        onClick = { toggleDialog() },
+                        modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp) // Added end padding for symmetry
+                    ) {
+                        Text("Select Tags")
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp)) // Adding space between button and tags
+
+                    Text("Tags:", modifier = Modifier.padding(start = 16.dp)) // Adding padding for the "Tags" text
+
+                    Row(modifier = Modifier.padding(start = 16.dp, top = 8.dp)) {
+                        tagsForTask.forEach { tag ->
+                            Text(
+                                tag.name,
+                                modifier = Modifier
+                                    .padding(end = 8.dp) // Add padding between tags
+                                    .background(Color(android.graphics.Color.parseColor(tag.background)))
+                            )
+                            // You can customize the UI to display tags as you prefer
+                        }
+                    }
+                }
+
+
+                // Dialog to display tags
+                if (isDialogOpen) {
+                    TagsDialog(
+                        tagViewModel,
+                        taskViewModel,
+                        taskId,
+                        onDismiss = { toggleDialog() }
+                    )
+                }
             }
             Divider(
                 modifier = Modifier
@@ -515,6 +569,63 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, navContro
         }
     }
 }
+
+@Composable
+fun TagsDialog(
+    tagViewModel: TagViewModel,
+    taskViewModel: TaskViewModel,
+    taskId: Long,
+    onDismiss: () -> Unit
+) {
+    val tagState by tagViewModel.state.collectAsState()
+    val tags = tagState.tags
+
+    val selectedTagIds = remember { mutableStateListOf<Long>() }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Select Tags") },
+        text = {
+            LazyColumn {
+                items(tags) { tag ->
+                    val isSelected = selectedTagIds.contains(tag.id)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clickable {
+                                if (isSelected) {
+                                    selectedTagIds.remove(tag.id)
+                                } else {
+                                    selectedTagIds.add(tag.id)
+                                }
+                            }
+                            .padding(8.dp)
+                    ) {
+                        Checkbox(
+                            checked = isSelected,
+                            onCheckedChange = null
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = tag.name)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    taskViewModel.addTagsToTask(taskId, selectedTagIds)
+                    onDismiss()
+                }
+            ) {
+                Text("Add Tags")
+            }
+        }
+    )
+}
+
+
+
 
 //@Preview(showBackground =  true)
 //@Composable

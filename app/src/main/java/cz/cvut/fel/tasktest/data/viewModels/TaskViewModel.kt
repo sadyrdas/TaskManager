@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cz.cvut.fel.tasktest.data.Converters
 import cz.cvut.fel.tasktest.data.SortTypeForBoard
+import cz.cvut.fel.tasktest.data.Tag
 import cz.cvut.fel.tasktest.data.Task
 import cz.cvut.fel.tasktest.data.events.BoardEvent
 import cz.cvut.fel.tasktest.data.events.TaskEvent
@@ -32,6 +33,15 @@ class TaskViewModel(
     val state: StateFlow<TaskState> = _state.asStateFlow()
     private val _taskState = mutableStateOf<TaskState?>(null)
     val taskState: State<TaskState?> = _taskState
+    private val _tagsForTask = MutableStateFlow<List<Tag>>(emptyList())
+    val tagsForTask: StateFlow<List<Tag>> = _tagsForTask.asStateFlow()
+
+    fun fetchTagsForTask(taskId: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val tags = taskDAO.getTagsForTask(taskId)
+            _tagsForTask.value = tags
+        }
+    }
 
 
     init {
@@ -93,6 +103,18 @@ class TaskViewModel(
             fetchTasks()
         }
     }
+
+    fun addTagsToTask(taskId: Long, tagIds: List<Long>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            // Insert the new tags for the task
+            taskDAO.insertTagsForTask(taskId, tagIds)
+
+            // Refresh tasks after updating tags
+            fetchTasks()
+        }
+    }
+
+
 
     fun onEvent(event: TaskEvent) {
         when (event) {
