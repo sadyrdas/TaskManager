@@ -47,6 +47,7 @@ import cz.cvut.fel.tasktest.screens.SectionCreationScreen
 import cz.cvut.fel.tasktest.screens.SettingsScreen
 import cz.cvut.fel.tasktest.screens.TagCreationScreen
 import cz.cvut.fel.tasktest.screens.TaskCreationScreen
+import cz.cvut.fel.tasktest.screens.TaskScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -60,7 +61,8 @@ enum class MainRoute(value: String) {
     TaskCreation("taskCreation"),
     AllTasks("allTasks"),
     CurrentBoard("currentBoard"),
-    SectionCreation("sectionCreation")
+    SectionCreation("sectionCreation"),
+    CurrentTask("currentTask")
 }
 
 private data class DrawerMenu(val id: Int, val title: String, val route: String)
@@ -122,7 +124,8 @@ fun MainNavigation(
     navController: NavHostController = rememberNavController(),
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
     drawerState: DrawerState = rememberDrawerState(initialValue = DrawerValue.Closed),
-    boardId:Long = viewModel.state.value.id
+    boardId:Long = viewModel.state.value.id,
+    taskId:Long = taskViewModel.state.value.id
 ) {
 
     ModalNavigationDrawer(
@@ -161,7 +164,7 @@ fun MainNavigation(
                 TaskCreationScreen(navController,drawerState, viewModel, taskViewModel, sectionViewModel, viewTagModel)
             }
             composable(MainRoute.AllTasks.name) {
-                AllTasksScreen(drawerState, taskViewModel)
+                AllTasksScreen(drawerState, taskViewModel, navController)
             }
             composable(route = "${MainRoute.CurrentBoard.name}/{boardId}") { backStackEntry ->
                 val boardId = backStackEntry.arguments?.getString("boardId")?.toLong()
@@ -174,6 +177,12 @@ fun MainNavigation(
                 val boardId = backStackEntry.arguments?.getString("boardId")?.toLong()
                 boardId?.let {
                     SectionCreationScreen(navController,drawerState, boardId, viewModel, sectionViewModel)
+                }
+            }
+            composable(route = "${MainRoute.CurrentTask.name}/{taskId}") { backStackEntry ->
+                val taskId = backStackEntry.arguments?.getString("taskId")?.toLong()
+                taskId?.let {
+                    TaskScreen(drawerState = drawerState, taskViewModel = taskViewModel, taskId = it, navController = navController)
                 }
             }
         }

@@ -1,5 +1,7 @@
 package cz.cvut.fel.tasktest.data.viewModels
 
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cz.cvut.fel.tasktest.data.Converters
@@ -14,7 +16,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Date
 
 class TaskViewModel(
     private val taskDAO: TaskDAO
@@ -23,6 +24,13 @@ class TaskViewModel(
     private var currentSortState: SortTypeForBoard = SortTypeForBoard.UNSORTED
     val state: StateFlow<TaskState> = _state.asStateFlow()
     val converters = Converters()
+    private val _taskState = mutableStateOf<TaskState?>(null)
+    val taskState: State<TaskState?> = _taskState
+
+    init {
+        fetchTasks() // Fetch boards when ViewModel is initialized
+    }
+
 
     fun fetchTasks() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -72,6 +80,24 @@ class TaskViewModel(
             is TaskEvent.DeleteTaskTag -> TODO()
             is TaskEvent.SetTaskTag -> TODO()
             is TaskEvent.UpdateTaskTag -> TODO()
+        }
+    }
+
+    fun getTaskState(boardId: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            // Fetch the board data from the repository based on the boardId
+            val taskData = taskDAO.getTaskById(boardId)
+            // Convert Board to BoardState
+            val stateOfTask = TaskState(taskData.title)
+            // Update the _boardState mutable state
+            _taskState.value = stateOfTask
+        }
+    }
+
+    fun fetchTasks() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val tasks = taskDAO.getAllTasks()
+            _state.update { it.copy(tasks = tasks) }
         }
     }
 
