@@ -1,6 +1,11 @@
 package cz.cvut.fel.tasktest.screens
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,6 +29,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -41,6 +47,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,8 +60,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
+import cz.cvut.fel.tasktest.data.events.BoardEvent
 import cz.cvut.fel.tasktest.data.events.TaskEvent
 import cz.cvut.fel.tasktest.data.viewModels.TaskViewModel
 import cz.cvut.fel.tasktest.ui.theme.Primary
@@ -73,11 +84,15 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, navContro
         skipPartiallyExpanded = skipPartiallyExpanded
     )
 
+    val context = LocalContext.current
+
     val scope = rememberCoroutineScope()
     var openDatePicker by remember { mutableStateOf(false) }
     var openEndDatePicker by remember { mutableStateOf(false) }
     var selectedStartDate by remember { mutableStateOf<Date?>(null) }
     var selectedEndDate by remember { mutableStateOf<Date?>(null) }
+
+    var showConfirmDialogAboutDeleteBoard by remember { mutableStateOf(false) }
 
     val taskState by taskViewModel.taskState
 
@@ -87,19 +102,33 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, navContro
     LaunchedEffect(taskId) {
         taskViewModel.getTaskState(taskId)
     }
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri: Uri? ->
+            uri?.let {
+                taskViewModel.handleImageSelection(taskId, context, uri)
+            }
+        }
+    )
 
-    val title = taskState?.title ?: ""
-    val description:String = taskState?.description ?: ""
+    val title = taskState?.title
+    val description = taskState?.description
+    var editedDescription by remember { mutableStateOf(description ?: "") }
 
 
     Scaffold(
         topBar = {
-            CustomAppBar(
-                drawerState = drawerState,
-                title = title,
-                backgroundColor = MaterialTheme.colorScheme.primary,
-                imageVector = Icons.Default.ArrowBack// Здесь указываем цвет
-            )
+            if (title != null) {
+                CustomAppBar(
+                    drawerState = drawerState,
+                    title = title,
+                    backgroundColor = MaterialTheme.colorScheme.primary,
+                    imageVector = Icons.Default.ArrowBack,
+                    navigationAction = {
+                        navController.popBackStack()
+                    }
+                )
+            }
         },
 
     ) { paddingValues ->
@@ -108,15 +137,23 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, navContro
                 .fillMaxSize()
                 .padding(paddingValues),
         ) {
+            val imageUri = taskState?.cover
             Box() {
-                AsyncImage(
-                    model = "https://www.istockphoto.com/resources/images/Homepage/Hero/1204187829.jpg",
-                    contentDescription = "Board Background",
+                Image(
+                    painter = rememberAsyncImagePainter(imageUri),
+                    contentDescription = "Selected Background",
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp),
+                        .height(300.dp)
+                        .width(300.dp)
+                        .padding(top = 40.dp)
+                        .border(
+                            1.dp,
+                            MaterialTheme.colorScheme.onSurface,
+                            MaterialTheme.shapes.extraLarge
+                        ),
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.Center
                 )
-
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -145,24 +182,53 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, navContro
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
                 ) {
+                    if (showConfirmDialogAboutDeleteBoard){
+                        AlertDialog(
+                            onDismissRequest = {
+                                // Dismiss the dialog when the user taps outside or on the back button
+                                showConfirmDialogAboutDeleteBoard = false
+                            },
+                            title = { Text("Confirmation") },
+                            text = { Text("Are you sure you want to delete this board?.") },
+                            confirmButton = {
+                                Button(
+                                    onClick = {
+                                        showConfirmDialogAboutDeleteBoard = false
+                                        taskViewModel.onEvent(TaskEvent.DeleteTask(taskId))
+                                    }
+                                ) {
+                                    Text("Confirm")
+                                }
+                            },
+                            dismissButton = {
+                                Button(
+                                    onClick = { showConfirmDialogAboutDeleteBoard = false }
+                                ) {
+                                    Text("Cancel")
+                                }
+                            }
+                        )
+                    }
                     Button(
-                        onClick = { /* Действие при нажатии на первую кнопку */ },
+                        onClick = {
+                            showConfirmDialogAboutDeleteBoard = true},
                         modifier = Modifier
                             .padding(vertical = 8.dp)
                             .weight(1f)
                             .width(150.dp)
                     ) {
-                        Text("First Button")
+                        Text("Delete Task")
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Button(
-                        onClick = { /* Действие при нажатии на вторую кнопку */ },
+                        onClick = {
+                            imagePickerLauncher.launch("image/*") },
                         modifier = Modifier
                             .padding(vertical = 8.dp)
                             .weight(1f)
                             .width(150.dp)
                     ) {
-                        Text("Second Button")
+                        Text("Add cover")
                     }
                 }
             }
@@ -186,22 +252,32 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, navContro
 
 
                 Column(modifier = Modifier.weight(1f)) {
-                    taskState?.let {
-                        TextField(
-                            value = it.description,
-                            placeholder = {
-                                if (description.isEmpty()) {
-                                    Text(text = "Description")
-                                } else {
-                                    Text(text = description)
-                                }
-                            },
-                            onValueChange = { newDescription ->
-                                taskViewModel.onEvent(TaskEvent.SetTaskDescription(newDescription)) },
-                            modifier = Modifier
-                //                            .clickable { isEditingDescription = true }
-                                .width(320.dp)
-                        )
+                    Row {
+                        if (description != null) {
+                            Text(text = description)
+                            TextField(
+                                value = editedDescription,
+                                onValueChange = { newDescription ->
+                                    editedDescription = newDescription
+                                    taskViewModel.onEvent(TaskEvent.SetTaskDescription(newDescription))
+                                },
+                                placeholder = {
+                                    if (description.isEmpty()) {
+                                        Text("Add description..")
+                                    }
+                                },
+                                modifier = Modifier
+                                    .width(320.dp)
+                            )
+                        }
+                        IconButton(onClick = { taskViewModel.onEvent(TaskEvent.SetTaskDescription(editedDescription)) }) {
+                            Icon(
+                                Icons.Default.Send,
+                                contentDescription = "Send",
+                                tint = Color.Black
+                            )
+
+                        }
                     }
                 }
             }
@@ -247,7 +323,9 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, navContro
                     Text(
 
                         text = dataStart,
-                        modifier = Modifier.padding(bottom = 4.dp).clickable { openDatePicker = true }
+                        modifier = Modifier
+                            .padding(bottom = 4.dp)
+                            .clickable { openDatePicker = true }
 
                     )
                     Divider(

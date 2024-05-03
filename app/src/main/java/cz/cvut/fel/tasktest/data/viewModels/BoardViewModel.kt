@@ -56,7 +56,7 @@ class BoardViewModel(
             // Fetch the board data from the repository based on the boardId
             val boardData = boardDAO.getById(boardId)
             // Convert Board to BoardState
-            val boardState = BoardState(boardData.title)
+            val boardState = BoardState(boardData.title, boardData.id, boardData.background)
             // Update the _boardState mutable state
             _boardState.value = boardState
         }

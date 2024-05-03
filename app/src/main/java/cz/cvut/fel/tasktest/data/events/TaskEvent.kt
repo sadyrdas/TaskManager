@@ -15,6 +15,7 @@ sealed interface TaskEvent {
     data class AddTaskComment(val comment: Note) : TaskEvent
     data class DeleteTaskComment(val comment: Note) : TaskEvent
     data class DeleteTaskTag(val tag: Tag) : TaskEvent
-    data class DeleteTask(val task: Task) : TaskEvent
+    data class DeleteTask(val id: Long) : TaskEvent
+    data class SetTaskCover(val cover: String) : TaskEvent
     data class UpdateTaskTag(val tag: Tag) : TaskEvent
 }

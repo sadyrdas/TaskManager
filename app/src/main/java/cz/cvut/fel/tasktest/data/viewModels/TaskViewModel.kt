@@ -1,5 +1,7 @@
 package cz.cvut.fel.tasktest.data.viewModels
 
+import android.content.Context
+import android.net.Uri
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -7,8 +9,10 @@ import androidx.lifecycle.viewModelScope
 import cz.cvut.fel.tasktest.data.Converters
 import cz.cvut.fel.tasktest.data.SortTypeForBoard
 import cz.cvut.fel.tasktest.data.Task
+import cz.cvut.fel.tasktest.data.events.BoardEvent
 import cz.cvut.fel.tasktest.data.events.TaskEvent
 import cz.cvut.fel.tasktest.data.repository.TaskDAO
+import cz.cvut.fel.tasktest.data.states.BoardState
 import cz.cvut.fel.tasktest.data.states.TaskState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,16 +20,19 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+import java.util.UUID
 
 class TaskViewModel(
     private val taskDAO: TaskDAO
 ) : ViewModel() {
     private val _state = MutableStateFlow(TaskState())
-    private var currentSortState: SortTypeForBoard = SortTypeForBoard.UNSORTED
     val state: StateFlow<TaskState> = _state.asStateFlow()
-    val converters = Converters()
     private val _taskState = mutableStateOf<TaskState?>(null)
     val taskState: State<TaskState?> = _taskState
+
 
     init {
         fetchTasks() // Fetch boards when ViewModel is initialized
@@ -38,6 +45,52 @@ class TaskViewModel(
             launch(Dispatchers.Main) {
                 _state.update { it.copy(tasks = tasks) }
             }
+        }
+    }
+
+    fun handleImageSelection(taskId: Long, context: Context, uri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val imagePath = saveImageToInternalStorage(context, uri)
+            withContext(Dispatchers.Main) {
+                updateTaskCover(taskId, imagePath)
+            }
+        }
+    }
+
+
+    private suspend fun saveImageToInternalStorage(context: Context, uri: Uri): String {
+        val inputStream = context.contentResolver.openInputStream(uri)
+        val directory = File(context.filesDir, "taskCover_images") // Path to the directory
+        if (!directory.exists()) {
+            directory.mkdirs() // Create the directory if it does not exist
+        }
+
+        // Now create the file within this directory
+        val file = File(directory, "${UUID.randomUUID()}.jpg")
+        val outputStream = withContext(Dispatchers.IO) {
+            FileOutputStream(file)
+        }
+
+        inputStream.use { input ->
+            outputStream.use { output ->
+                input?.copyTo(output) ?: throw IllegalStateException("Couldn't copy file")
+            }
+        }
+
+        return file.absolutePath // Return the file path
+    }
+
+    private fun updateTaskCover(taskId: Long, cover: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            taskDAO.updateTaskCover(taskId, cover)
+            fetchTasks()
+        }
+    }
+
+    private fun updateTaskDescription(taskId: Long, description: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            taskDAO.updateTaskDescription(taskId, description)
+            fetchTasks()
         }
     }
 
@@ -65,7 +118,14 @@ class TaskViewModel(
                 _state.update { it.copy(title = event.name) }
             }
             is TaskEvent.SetTaskDescription -> {
-                _state.update { it.copy(description = event.description) }
+                viewModelScope.launch(Dispatchers.IO) {
+                    // Fetch task state
+                    getTaskState(_state.value.id)
+                    // Update task description
+                    _state.update { it.copy(description = event.description) }
+                    // Update task description in the database
+                    updateTaskDescription(_state.value.id, event.description)
+                }
             }
             is TaskEvent.SetTaskDateStart -> {
                 _state.update { it.copy(dateStart = event.dateStart) }
@@ -75,31 +135,49 @@ class TaskViewModel(
             }
 
             is TaskEvent.AddTaskComment -> TODO()
-            is TaskEvent.DeleteTask -> TODO()
+            is TaskEvent.DeleteTask -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    taskDAO.deleteTask(event.id)
+                    fetchTasks()
+                }
+            }
             is TaskEvent.DeleteTaskComment -> TODO()
             is TaskEvent.DeleteTaskTag -> TODO()
             is TaskEvent.SetTaskTag -> TODO()
             is TaskEvent.UpdateTaskTag -> TODO()
+            is TaskEvent.SetTaskCover -> {
+                _state.update { it.copy(cover = event.cover) }
+            }
         }
     }
 
-    fun getTaskState(boardId: Long) {
+    fun getTaskState(taskId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
-            // Fetch the board data from the repository based on the boardId
-            val taskData = taskDAO.getTaskById(boardId)
-            // Convert Board to BoardState
-            val stateOfTask = TaskState(taskData.title)
-            // Update the _boardState mutable state
-            _taskState.value = stateOfTask
+            // Fetch the task data from the repository based on the taskId
+            val taskData = taskDAO.getTaskById(taskId)
+            if (taskData != null) { // Check if taskData is not null
+                // Convert Task to TaskState
+                val stateOfTask = taskData.cover?.let {
+                    taskData.startDate?.let { it1 ->
+                        taskData.endDate?.let { it2 ->
+                            TaskState(
+                                taskData.title,
+                                taskData.description,
+                                0,
+                                emptyList(),
+                                it1,
+                                it2,
+                                emptyList(),
+                                it,
+                                0
+                            )
+                        }
+                    }
+                }
+                // Update the _taskState mutable state
+                _taskState.value = stateOfTask
+            }
         }
     }
-
-    fun fetchTasks() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val tasks = taskDAO.getAllTasks()
-            _state.update { it.copy(tasks = tasks) }
-        }
-    }
-
 
 }

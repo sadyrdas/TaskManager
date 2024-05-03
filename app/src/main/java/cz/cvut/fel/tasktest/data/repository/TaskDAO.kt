@@ -1,6 +1,7 @@
 package cz.cvut.fel.tasktest.data.repository
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import cz.cvut.fel.tasktest.data.Note
@@ -12,7 +13,7 @@ interface TaskDAO {
     @Insert
     fun insertTask(task: Task)
 
-    @Query("DELETE FROM task WHERE id = :id and id != 0")
+    @Query("DELETE FROM task WHERE id = :id")
     fun deleteTask(id: Long)
 
     @Query("SELECT * FROM task")
@@ -35,4 +36,10 @@ interface TaskDAO {
 
     @Query("SELECT tagId FROM task WHERE id = :taskId")
     fun getTagsForTask(taskId: Long): List<Long>
+
+    @Query("UPDATE task SET cover = :cover WHERE id = :taskId")
+    fun updateTaskCover(taskId: Long, cover: String)
+
+    @Query("UPDATE task SET description = :description WHERE id = :taskId")
+    fun updateTaskDescription(taskId: Long, description: String)
 }

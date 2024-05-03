@@ -29,6 +29,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
@@ -136,7 +137,7 @@ fun CurrentBoardScreen(navController: NavHostController, drawerState: DrawerStat
                                         .height(120.dp)
                                         .align(Alignment.CenterHorizontally)
                                 ) {
-                                    TaskCard(taskViewModel, task)
+                                    TaskCard(task, navController)
                                 }
                             }
                         }
@@ -199,8 +200,7 @@ fun FloatingButton(navController: NavHostController, boardId: Long) {
 }
 
 @Composable
-fun TaskCard(taskViewModel: TaskViewModel, task: Task) {
-    val taskState by taskViewModel.state.collectAsState()
+fun TaskCard(task: Task, navController: NavHostController) {
     Column {
         Row {
             /*TODO Add tags*/
@@ -210,13 +210,16 @@ fun TaskCard(taskViewModel: TaskViewModel, task: Task) {
                 .weight(1f)
                 .padding(start = 8.dp),
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize)
-            Icon(imageVector =
+            IconButton(onClick = { navController.navigate("${MainRoute.CurrentTask.name}/${task.id}") }) {
+                Icon(imageVector =
                 Icons.Default.Create,
-                contentDescription = "Task Edit",
-                modifier = Modifier
-                    .align(Alignment.CenterVertically)
-                    .padding(end = 8.dp)
-            )
+                    contentDescription = "Task Edit",
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .padding(end = 8.dp)
+                )
+            }
+
         }
 
 

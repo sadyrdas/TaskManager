@@ -142,7 +142,7 @@ fun ArticlesScreen(navController: NavHostController, viewModel: BoardViewModel, 
                                 Button(
                                     onClick = {
                                         showConfirmDialogAboutDeleteBoard = false
-                                        viewModel.onEvent(BoardEvent.DeleteBoard(board))// Launch image picker after confirmation
+                                        viewModel.onEvent(BoardEvent.DeleteBoard(board))
                                     }
                                 ) {
                                     Text("Confirm")
