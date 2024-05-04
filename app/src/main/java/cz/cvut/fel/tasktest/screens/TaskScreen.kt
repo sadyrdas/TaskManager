@@ -69,6 +69,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
+import cz.cvut.fel.tasktest.MainRoute
 import cz.cvut.fel.tasktest.data.Tag
 import cz.cvut.fel.tasktest.data.events.BoardEvent
 import cz.cvut.fel.tasktest.data.events.TaskEvent
@@ -76,7 +77,9 @@ import cz.cvut.fel.tasktest.data.viewModels.TagViewModel
 import cz.cvut.fel.tasktest.data.viewModels.TaskViewModel
 import cz.cvut.fel.tasktest.ui.theme.Primary
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
@@ -170,14 +173,14 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                     painter = rememberAsyncImagePainter(imageUri),
                     contentDescription = "Selected Background",
                     modifier = Modifier
-                        .height(300.dp)
-                        .width(300.dp)
-                        .padding(top = 40.dp)
-                        .border(
-                            1.dp,
-                            MaterialTheme.colorScheme.onSurface,
-                            MaterialTheme.shapes.extraLarge
-                        ),
+                        .height(200.dp)
+                        .fillMaxWidth(),
+//                        .padding(top = 40.dp)
+//                        .border(
+//                            1.dp,
+//                            MaterialTheme.colorScheme.onSurface,
+//                            MaterialTheme.shapes.extraLarge
+//                        ),
                     contentScale = ContentScale.Crop,
                     alignment = Alignment.Center
                 )
@@ -281,23 +284,23 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                 Column(modifier = Modifier.weight(1f)) {
                     Row {
                         if (description != null) {
-                            Text(text = description)
+//                            Text(text = description)
                             TextField(
                                 value = editedDescription,
                                 onValueChange = { newDescription ->
                                     editedDescription = newDescription
-                                    taskViewModel.onEvent(TaskEvent.SetTaskDescription(newDescription))
-                                },
+                                    taskViewModel.onEvent(TaskEvent.SetTaskDescription(newDescription, taskId))                                },
                                 placeholder = {
                                     if (description.isEmpty()) {
                                         Text("Add description..")
                                     }
+                                    Text(description)
                                 },
                                 modifier = Modifier
                                     .width(320.dp)
                             )
                         }
-                        IconButton(onClick = { taskViewModel.onEvent(TaskEvent.SetTaskDescription(editedDescription)) }) {
+                        IconButton(onClick = { taskViewModel.onEvent(TaskEvent.SetTaskDescription(editedDescription, taskId)) }) {
                             Icon(
                                 Icons.Default.Send,
                                 contentDescription = "Send",
@@ -320,17 +323,18 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                     .fillMaxWidth()
                     .padding(start = 16.dp, top = 16.dp)
             ) {
-                Column {
-                    Button(
-                        onClick = { toggleDialog() },
-                        modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp) // Added end padding for symmetry
-                    ) {
-                        Text("Select Tags")
-                    }
+                Row {
 
-                    Spacer(modifier = Modifier.height(8.dp)) // Adding space between button and tags
+//                    Spacer(modifier = Modifier.height(8.dp)) // Adding space between button and tags
 
-                    Text("Tags:", modifier = Modifier.padding(start = 16.dp)) // Adding padding for the "Tags" text
+                    Text("Tags:", modifier = Modifier.padding(start = 16.dp).clickable { toggleDialog() }) // Adding padding for the "Tags" text
+
+//                    Button(
+//                        onClick = { toggleDialog() },
+//                        modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp) // Added end padding for symmetry
+//                    ) {
+//                        Text("Select Tags")
+//                    }
 
                     Row(modifier = Modifier.padding(start = 16.dp, top = 8.dp)) {
                         tagsForTask.forEach { tag ->
@@ -352,7 +356,8 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                         tagViewModel,
                         taskViewModel,
                         taskId,
-                        onDismiss = { toggleDialog() }
+                        onDismiss = { toggleDialog() },
+                        navController
                     )
                 }
             }
@@ -374,20 +379,39 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                     modifier = Modifier.padding(end = 16.dp)
                 )
                 Column {
-                    Text(
+                    if (dataStart != "Starting.."){
+                        Text(
+                            text = convertToDate(dataStart),
+                            modifier = Modifier
+                                .padding(bottom = 4.dp)
+                                .clickable { openDatePicker = true})
 
-                        text = dataStart,
-                        modifier = Modifier
-                            .padding(bottom = 4.dp)
-                            .clickable { openDatePicker = true }
-
-                    )
+                    } else {
+                        Text(
+                            text = "Starting..",
+                            modifier = Modifier
+                                .padding(bottom = 4.dp)
+                                .clickable { openDatePicker = true})
+                    }
                     Divider(
                         modifier = Modifier
                             .padding(bottom = 4.dp)
                             .width(320.dp)
                     )
-                    Text(text = dataEnd, modifier = Modifier.clickable { openEndDatePicker = true })
+                    if (dataEnd != "Ending"){
+                        Text(
+                            text = convertToDate(dataEnd),
+                            modifier = Modifier
+                                .padding(bottom = 4.dp)
+                                .clickable { openEndDatePicker = true})
+                    } else {
+                        Text(
+                            text = "Ending",
+                            modifier = Modifier
+                                .padding(bottom = 4.dp)
+                                .clickable { openEndDatePicker = true})
+                    }
+
                 }
                 if (openDatePicker) {
                     val datePickerState = rememberDatePickerState()
@@ -575,7 +599,8 @@ fun TagsDialog(
     tagViewModel: TagViewModel,
     taskViewModel: TaskViewModel,
     taskId: Long,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    navController: NavController
 ) {
     val tagState by tagViewModel.state.collectAsState()
     val tags = tagState.tags
@@ -614,6 +639,11 @@ fun TagsDialog(
         confirmButton = {
             Button(
                 onClick = {
+                    if (selectedTagIds.isNotEmpty()) {
+                        taskViewModel.addTagsToTask(taskId, selectedTagIds)
+                    } else {
+                        navController.navigate(MainRoute.TagCreation.name)
+                    }
                     taskViewModel.addTagsToTask(taskId, selectedTagIds)
                     onDismiss()
                 }
@@ -624,7 +654,12 @@ fun TagsDialog(
     )
 }
 
-
+fun convertToDate(input: String): String {
+    val dateFormat = SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH)
+    val date = dateFormat.parse(input)
+    val outputFormat = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
+    return outputFormat.format(date)
+}
 
 
 //@Preview(showBackground =  true)

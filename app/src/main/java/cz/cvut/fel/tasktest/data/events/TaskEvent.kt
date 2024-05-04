@@ -8,7 +8,7 @@ import java.util.Date
 sealed interface TaskEvent {
     object SaveTask: TaskEvent
     data class SetTaskName(val name: String) : TaskEvent
-    data class SetTaskDescription(val description: String) : TaskEvent
+    data class SetTaskDescription(val description: String, val id:Long) : TaskEvent
     data class SetTaskTag(val tag: Tag) : TaskEvent
     data class SetTaskDateStart(val dateStart: String) : TaskEvent
     data class SetTaskDateEnd(val dateEnd: String) : TaskEvent

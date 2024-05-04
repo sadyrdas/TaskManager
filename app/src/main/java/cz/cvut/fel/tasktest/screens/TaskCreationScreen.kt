@@ -109,7 +109,7 @@ fun TaskCreationScreen(navController: NavHostController, drawerState: DrawerStat
                     value = taskState.description,
                     placeholder = {Text(text = "Description")},
                     onValueChange = { newDescription ->
-                        taskViewModel.onEvent(TaskEvent.SetTaskDescription(newDescription))},
+                        taskViewModel.onEvent(TaskEvent.SetTaskDescription(newDescription, taskState.id))},
                     modifier = Modifier
                         .width(320.dp)
                         .padding(top = 16.dp)

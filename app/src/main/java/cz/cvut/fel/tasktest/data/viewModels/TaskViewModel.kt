@@ -2,10 +2,12 @@ package cz.cvut.fel.tasktest.data.viewModels
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 import cz.cvut.fel.tasktest.data.Converters
 import cz.cvut.fel.tasktest.data.SortTypeForBoard
 import cz.cvut.fel.tasktest.data.Tag
@@ -35,6 +37,7 @@ class TaskViewModel(
     val taskState: State<TaskState?> = _taskState
     private val _tagsForTask = MutableStateFlow<List<Tag>>(emptyList())
     val tagsForTask: StateFlow<List<Tag>> = _tagsForTask.asStateFlow()
+    val navController: NavController? = null
 
     fun fetchTagsForTask(taskId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -96,11 +99,18 @@ class TaskViewModel(
             fetchTasks()
         }
     }
-
     private fun updateTaskDescription(taskId: Long, description: String) {
+        Log.d("TaskViewModel", "Updating task description: taskId=$taskId, description=$description")
         viewModelScope.launch(Dispatchers.IO) {
             taskDAO.updateTaskDescription(taskId, description)
-            fetchTasks()
+            // Fetch the updated task from the database
+            val updatedTask = taskDAO.getTaskById(taskId)
+            Log.d("TaskViewModel", "Updated task: $updatedTask")
+            // Update the UI state if the task exists and its description is not null
+            updatedTask?.let { task ->
+                val newDescription = task.description ?: ""
+                _taskState.value = _taskState.value?.copy(description = newDescription)
+            }
         }
     }
 
@@ -141,13 +151,9 @@ class TaskViewModel(
             }
             is TaskEvent.SetTaskDescription -> {
                 viewModelScope.launch(Dispatchers.IO) {
-                    // Fetch task state
-                    getTaskState(_state.value.id)
-                    // Update task description
-                    _state.update { it.copy(description = event.description) }
-                    // Update task description in the database
-                    updateTaskDescription(_state.value.id, event.description)
+                    updateTaskDescription(event.id, event.description)
                 }
+                _state.update { it.copy(description = event.description) }
             }
             is TaskEvent.SetTaskDateStart -> {
                 _state.update { it.copy(dateStart = event.dateStart) }
