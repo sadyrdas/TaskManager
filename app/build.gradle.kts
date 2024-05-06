@@ -88,4 +88,14 @@ dependencies {
     implementation(libs.accompanist.coil)
     implementation(libs.coil.compose)
     implementation("io.coil-kt:coil-compose:2.1.0")
+
+    // CameraX
+    implementation("androidx.camera:camera-core:1.2.2")
+    implementation("androidx.camera:camera-camera2:1.2.2")
+    implementation("androidx.camera:camera-lifecycle:1.2.2")
+    implementation("androidx.camera:camera-view:1.2.2")
+    implementation("androidx.camera:camera-extensions:1.2.2")
+
+    implementation("androidx.compose.material:material-icons-extended:1.4.3")
+
 }

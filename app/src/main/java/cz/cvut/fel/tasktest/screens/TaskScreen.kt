@@ -1,11 +1,12 @@
 package cz.cvut.fel.tasktest.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,7 +31,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Send
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
@@ -66,20 +66,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
 import cz.cvut.fel.tasktest.MainRoute
+import cz.cvut.fel.tasktest.R
 import cz.cvut.fel.tasktest.data.Tag
 import cz.cvut.fel.tasktest.data.events.BoardEvent
 import cz.cvut.fel.tasktest.data.events.TaskEvent
+import cz.cvut.fel.tasktest.data.viewModels.CameraView
 import cz.cvut.fel.tasktest.data.viewModels.TagViewModel
 import cz.cvut.fel.tasktest.data.viewModels.TaskViewModel
 import cz.cvut.fel.tasktest.ui.theme.Primary
 import kotlinx.coroutines.launch
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.Executors
 
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
@@ -145,6 +150,37 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
     val description = taskState?.description
     var editedDescription by remember { mutableStateOf(description ?: "") }
 
+    // image state
+    var selectedImageUri:Uri? by remember { mutableStateOf(Uri.parse(taskState?.photo ?: "" )) }
+    var showCamera by remember { mutableStateOf(false) }
+
+    fun getOutputDirectory(): File {
+        val mediaDir = context.externalMediaDirs.firstOrNull()?.let {
+            File(it, context.resources.getString(R.string.app_name)).apply { mkdirs() }
+        }
+        return if ((mediaDir != null) && mediaDir.exists()) mediaDir else context.filesDir
+    }
+
+    fun handleImageCapture(uri: Uri) {
+        selectedImageUri = uri
+        showCamera = false
+    }
+
+    var hasCameraPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            hasCameraPermission = isGranted
+        }
+    )
 
     Scaffold(
         topBar = {
@@ -162,6 +198,15 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
         },
 
     ) { paddingValues ->
+        if (showCamera) {
+            CameraView(
+                outputDirectory = getOutputDirectory(),
+                executor = Executors.newSingleThreadExecutor(),
+                onImageCaptured = ::handleImageCapture,
+                onError = {},
+                navController = navController
+            )
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -175,12 +220,6 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                     modifier = Modifier
                         .height(200.dp)
                         .fillMaxWidth(),
-//                        .padding(top = 40.dp)
-//                        .border(
-//                            1.dp,
-//                            MaterialTheme.colorScheme.onSurface,
-//                            MaterialTheme.shapes.extraLarge
-//                        ),
                     contentScale = ContentScale.Crop,
                     alignment = Alignment.Center
                 )
@@ -278,13 +317,9 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                     Icons.Filled.List, contentDescription = "Description Icon",
                     modifier = Modifier.padding(end = 16.dp)
                 )
-
-
-
                 Column(modifier = Modifier.weight(1f)) {
                     Row {
                         if (description != null) {
-//                            Text(text = description)
                             TextField(
                                 value = editedDescription,
                                 onValueChange = { newDescription ->
@@ -324,18 +359,7 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                     .padding(start = 16.dp, top = 16.dp)
             ) {
                 Row {
-
-//                    Spacer(modifier = Modifier.height(8.dp)) // Adding space between button and tags
-
                     Text("Tags:", modifier = Modifier.padding(start = 16.dp).clickable { toggleDialog() }) // Adding padding for the "Tags" text
-
-//                    Button(
-//                        onClick = { toggleDialog() },
-//                        modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp) // Added end padding for symmetry
-//                    ) {
-//                        Text("Select Tags")
-//                    }
-
                     Row(modifier = Modifier.padding(start = 16.dp, top = 8.dp)) {
                         tagsForTask.forEach { tag ->
                             Text(
@@ -348,9 +372,6 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                         }
                     }
                 }
-
-
-                // Dialog to display tags
                 if (isDialogOpen) {
                     TagsDialog(
                         tagViewModel,
@@ -458,6 +479,18 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                     }
                 }
             }
+
+            selectedImageUri?.let { uri ->
+                Image(
+                    painter = rememberImagePainter(uri),
+                    contentDescription = "Selected Image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .padding(vertical = 16.dp),
+                    contentScale = ContentScale.Crop
+                )
+            }
             Row(
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -546,7 +579,13 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                                     text = "Add photo",
                                     style = MaterialTheme.typography.bodyLarge,
                                     modifier = Modifier
-                                        .padding(16.dp)
+                                        .padding(16.dp).clickable {
+                                            if (!hasCameraPermission) {
+                                                permissionLauncher.launch(Manifest.permission.CAMERA)
+                                            } else {
+                                                showCamera = true
+                                            }
+                                        }
                                 )
                             }
 

@@ -38,15 +38,18 @@ import cz.cvut.fel.tasktest.CustomAppBar
 import cz.cvut.fel.tasktest.MainRoute
 import cz.cvut.fel.tasktest.data.Tag
 import cz.cvut.fel.tasktest.data.Task
+import cz.cvut.fel.tasktest.data.viewModels.BoardViewModel
 import cz.cvut.fel.tasktest.data.viewModels.TaskViewModel
 
 @Composable
-fun AllTasksScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, navController: NavHostController) {
+fun AllTasksScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, boardViewModel: BoardViewModel ,navController: NavHostController) {
 
 
     val (drawerStateForFilter, setDrawerStateForFilter) = remember { mutableStateOf(false) }
 
     val taskState by taskViewModel.state.collectAsState()
+
+    val boardList = boardViewModel.state.collectAsState().value.boards
 
     LaunchedEffect(key1 = true) {
         taskViewModel.fetchTasks()
@@ -54,19 +57,24 @@ fun AllTasksScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, navCo
 
     Scaffold(
         topBar = {
-            CustomAppBar(drawerState = drawerState, title = "All tasks",
-                backgroundColor = MaterialTheme.colorScheme.primaryContainer , imageVector = Icons.Default.Close )
+            CustomAppBar(
+                drawerState = drawerState,
+                title = "All tasks",
+                backgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                imageVector = Icons.Default.Close
+            )
         }
     ) { paddingValues ->
-            Column(
-                modifier = Modifier.padding(paddingValues)
-            ) {
+        Column(
+            modifier = Modifier.padding(paddingValues)
+        ) {
+            boardList.forEach { board ->
                 Text(
-                    text = "All Tasks",
+                    text = "All tasks of board: ${board.title}",
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                     fontSize = MaterialTheme.typography.headlineLarge.fontSize,
                 )
-                taskState.tasks.forEach() { task ->
+                taskState.tasks.forEach { task ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
@@ -96,9 +104,9 @@ fun AllTasksScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, navCo
                             )
                         }
                     }
-
                 }
             }
+        }
     }
 }
 

@@ -39,7 +39,6 @@ import cz.cvut.fel.tasktest.data.viewModels.UserViewModel
 import cz.cvut.fel.tasktest.screens.AboutScreen
 import cz.cvut.fel.tasktest.screens.AccountCustomizationScreen
 import cz.cvut.fel.tasktest.screens.AllTasksScreen
-
 import cz.cvut.fel.tasktest.screens.ArticlesScreen
 import cz.cvut.fel.tasktest.screens.BoardCreationScreen
 import cz.cvut.fel.tasktest.screens.CurrentBoardScreen
@@ -164,7 +163,7 @@ fun MainNavigation(
                 TaskCreationScreen(navController,drawerState, viewModel, taskViewModel, sectionViewModel, viewTagModel)
             }
             composable(MainRoute.AllTasks.name) {
-                AllTasksScreen(drawerState, taskViewModel, navController)
+                AllTasksScreen(drawerState, taskViewModel, viewModel ,navController)
             }
             composable(route = "${MainRoute.CurrentBoard.name}/{boardId}") { backStackEntry ->
                 val boardId = backStackEntry.arguments?.getString("boardId")?.toLong()
@@ -188,9 +187,3 @@ fun MainNavigation(
         }
     }
 }
-
-//@Preview(showBackground = true)
-//@Composable
-//fun MainNavigationPreview() {
-//    MainNavigation()
-//}

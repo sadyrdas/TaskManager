@@ -16,5 +16,6 @@ data class TaskState (
     val cover: String = "",
     var sectionid: Long = 0,
     val tagId: Long = 0,
-    val tasks: List<Task> = emptyList()
+    val tasks: List<Task> = emptyList(),
+    val photo: String = "",
 )

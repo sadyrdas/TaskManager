@@ -70,7 +70,6 @@ class TaskViewModel(
         }
     }
 
-
     private suspend fun saveImageToInternalStorage(context: Context, uri: Uri): String {
         val inputStream = context.contentResolver.openInputStream(uri)
         val directory = File(context.filesDir, "taskCover_images") // Path to the directory
