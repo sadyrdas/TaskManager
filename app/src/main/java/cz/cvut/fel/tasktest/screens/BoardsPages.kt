@@ -13,12 +13,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
@@ -48,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -194,42 +197,50 @@ fun FilterDrawerSheet(closeDrawer: () -> Unit, viewModel: BoardViewModel) {
         Column(
             modifier = Modifier
                 .width(300.dp)
-                .height(700.dp)
+                .fillMaxHeight()
                 .background(MaterialTheme.colorScheme.primaryContainer)
                 .padding(top = 50.dp)
         ) {
             Row(modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 25.dp, vertical = 20.dp)) {
+                .fillMaxWidth()
+                .padding(horizontal = 25.dp, vertical = 20.dp)) {
                 Text("Filter your boards", style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.weight(1f))
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(top = 5.dp))
                 IconButton(onClick = closeDrawer) {
                     Icon(Icons.Filled.Close, "Close")
                 }
             }
             Spacer(modifier = Modifier.height(13.dp))
-            TextButton(onClick = { viewModel.sortBoardsByTitleAsc() },
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .border(1.dp, Color.Black, ShapeDefaults.Small))
-            {
-                Text("Filter by name",
-                    fontSize = 20.sp)
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(12.dp)
+                        .background(Color.Black, CircleShape)
+                )
+                TextButton(onClick = { viewModel.sortBoardsByTitleDesc() },
+                  modifier = Modifier.padding(vertical = 10.dp, horizontal = 10.dp))
+                {
+                    Text("Filter by name",
+                        fontSize = 18.sp, color = Color.Black, fontWeight = FontWeight.SemiBold)
+                }
             }
-            Divider(
-                modifier = Modifier.padding(top = 12.dp),
-                color = Color.Red,
-            )
             Spacer(modifier = Modifier.height(10.dp))
-            TextButton(onClick = {
-                // TODO: Implement the sorting functionality
-                // Currently this button does nothing
-            }, modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .border(1.dp, Color.Black, ShapeDefaults.Small))
-            {
-                Text("Filter by ???",
-                    fontSize = 20.sp)
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)){
+                Box(
+                    modifier = Modifier
+                        .size(12.dp)
+                        .background(Color.Black, CircleShape)
+                )
+                TextButton(onClick = {
+                    viewModel.sortBoardsByTitleAsc()
+                }, modifier = Modifier
+                    .padding(horizontal = 16.dp))
+                {
+                    Text("Filter by name DESC",
+                        fontSize = 18.sp, color = Color.Black, fontWeight = FontWeight.SemiBold)
+                }
             }
         }
     }

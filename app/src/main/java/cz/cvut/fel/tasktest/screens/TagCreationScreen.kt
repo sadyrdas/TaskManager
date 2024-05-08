@@ -15,7 +15,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
@@ -28,6 +31,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -48,6 +53,7 @@ import com.github.skydoves.colorpicker.compose.AlphaTile
 import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 import cz.cvut.fel.tasktest.CustomAppBar
+import cz.cvut.fel.tasktest.MainRoute
 import cz.cvut.fel.tasktest.data.events.TagEvent
 import cz.cvut.fel.tasktest.data.viewModels.TagViewModel
 
@@ -85,10 +91,7 @@ fun TagCreationScreen(navController: NavHostController, drawerState: DrawerState
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.background)
-                .clickable(onClick = {
-                    focusManager.clearFocus()
-                }),
+                .background(MaterialTheme.colorScheme.background),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(modifier = Modifier
@@ -134,7 +137,7 @@ fun TagCreationScreen(navController: NavHostController, drawerState: DrawerState
             Spacer(modifier = Modifier.height(60.dp))
             if (!showColorPicker){
                 Button(onClick = { showColorPicker = true }, modifier = Modifier.height(70.dp)) {
-                    Text("Select color of background")
+                    Text("Select color of background", color = Color.Black)
                 }
             } else {
                 Button(onClick = { showColorPicker = false }, modifier = Modifier.height(70.dp)) {
@@ -146,8 +149,17 @@ fun TagCreationScreen(navController: NavHostController, drawerState: DrawerState
                 ColorPicker(viewModel)
             }
             Spacer(modifier = Modifier.height(60.dp))
-            Button(onClick = { viewModel.onEvent(TagEvent.SaveTag) }, modifier = Modifier.height(70.dp)) {
-                Text("Save Tag")
+            TextButton(
+                onClick = {viewModel.onEvent(TagEvent.SaveTag)},
+                modifier = Modifier
+                    .background(Color(0xFF59D47B), shape = CircleShape)
+                    .padding(horizontal = 16.dp)
+            ) {
+                Text(
+                    text = "Save Tag",
+                    color = Color.Black,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
             Spacer(modifier = Modifier.height(40.dp))
             Divider(
@@ -162,25 +174,35 @@ fun TagCreationScreen(navController: NavHostController, drawerState: DrawerState
                     .padding(top = 12.dp)
                     .align(Alignment.CenterHorizontally)
             )
-            state.tags.forEach { tag ->
-                Row(verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp, vertical = 8.dp)) {
-                    Text(
-                        text = tag.name,
-                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                        fontWeight = MaterialTheme.typography.headlineSmall.fontWeight,
-                        textAlign = TextAlign.Center,
+            Column(modifier = Modifier.verticalScroll(rememberScrollState(), reverseScrolling = true)) {
+                state.tags.forEach { tag ->
+                    Row(verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
-                            .border(
-                                1.dp,
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.shapes.extraLarge
+                            .padding(horizontal = 16.dp, vertical = 8.dp)) {
+                        Text(
+                            text = tag.name,
+                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                            fontWeight = MaterialTheme.typography.headlineSmall.fontWeight,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .border(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.primary,
+                                    MaterialTheme.shapes.extraLarge
+                                )
+                                .height(40.dp)
+                                .width(200.dp)
+                                .background(Color(android.graphics.Color.parseColor(tag.background)))
+                        )
+                        IconButton(onClick = { showConfirmDialogAboutDeleteBoard = true },
+                            modifier = Modifier
+                                .padding(start = 8.dp)
+                                .size(30.dp)){
+                            Icon(imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete Tag Icon",
                             )
-                            .height(40.dp)
-                            .width(200.dp)
-                            .background(Color(android.graphics.Color.parseColor(tag.background)))
-                    )
+                        }
+            }
 
                     if (showConfirmDialogAboutDeleteBoard){
                         AlertDialog(
@@ -210,14 +232,6 @@ fun TagCreationScreen(navController: NavHostController, drawerState: DrawerState
                         )
                     }
 
-                    IconButton(onClick = { showConfirmDialogAboutDeleteBoard = true },
-                        modifier = Modifier
-                            .padding(start = 8.dp)
-                            .size(30.dp)){
-                        Icon(imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete Tag Icon",
-                        )
-                    }
                 }
             }
 
