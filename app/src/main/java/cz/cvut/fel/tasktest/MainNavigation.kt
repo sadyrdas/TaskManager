@@ -13,12 +13,14 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -31,6 +33,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import coil.compose.rememberAsyncImagePainter
 import cz.cvut.fel.tasktest.data.viewModels.BoardViewModel
 import cz.cvut.fel.tasktest.data.viewModels.SectionViewModel
 import cz.cvut.fel.tasktest.data.viewModels.TagViewModel
@@ -79,7 +82,11 @@ private fun DrawerContent(
     viewModel: UserViewModel,
     onMenuClick: (String) -> Unit,
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.userState.collectAsState()
+
+    LaunchedEffect(key1 = null) {
+        viewModel.fetchUser()
+    }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -90,16 +97,27 @@ private fun DrawerContent(
                 .height(200.dp),
             contentAlignment = Alignment.Center
         ) {
-            Image(
-                modifier = Modifier.size(150.dp),
-                imageVector = Icons.Filled.AccountCircle,
-                contentScale = ContentScale.Crop,
-                contentDescription = null
-            )
+            if (state?.background != null) {
+                Image(
+                    modifier = Modifier.size(150.dp),
+                    painter = rememberAsyncImagePainter(state!!.background),
+                    contentScale = ContentScale.Crop,
+                    contentDescription = null
+                )
+            } else {
+                // Display default icon
+                Icon(
+                    imageVector = Icons.Filled.AccountCircle,
+                    contentDescription = "User profile picture",
+                    modifier = Modifier.size(150.dp)
+                )
+            }
         }
         Spacer(modifier = Modifier.height(12.dp))
-        Text(text = state.userName)
-        Spacer(modifier = Modifier.height(12.dp))
+        if (!state?.userName.isNullOrEmpty()) {
+            Text(text = state!!.userName, modifier = Modifier.align(Alignment.CenterHorizontally), fontSize = MaterialTheme.typography.bodyLarge.fontSize)
+            Spacer(modifier = Modifier.height(12.dp))
+        }
         menus.forEach {
             NavigationDrawerItem(
                 label = { Text(text = it.title) },
@@ -112,6 +130,7 @@ private fun DrawerContent(
         }
     }
 }
+
 
 @Composable
 fun MainNavigation(
@@ -150,7 +169,7 @@ fun MainNavigation(
             composable(MainRoute.Settings.name) {
                 SettingsScreen(navController,drawerState)
             }
-            composable(MainRoute.AccountCustomization.name){
+            composable(MainRoute.AccountCustomization.name) {
                 AccountCustomizationScreen(navController, drawerState, viewUserModel)
             }
             composable(MainRoute.BoardCreation.name){

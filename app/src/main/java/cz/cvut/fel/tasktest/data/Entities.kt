@@ -40,25 +40,6 @@ data class TaskTagCrossRef(
     val tagId: Long
 )
 
-data class TaskWithTags(
-    @Embedded val task: Task,
-    @Relation(
-        parentColumn = "id",
-        entityColumn = "id",
-        associateBy = Junction(TaskTagCrossRef::class)
-    )
-    val tags: List<Tag>
-)
-
-data class TagWithTasks(
-    @Embedded val tag: Tag,
-    @Relation(
-        parentColumn = "id",
-        entityColumn = "id",
-        associateBy = Junction(TaskTagCrossRef::class)
-    )
-    val tasks: List<Task>
-)
 
 @Entity(tableName = "board")
 data class Board(
@@ -69,8 +50,9 @@ data class Board(
 
 @Entity(tableName = "user")
 data class User(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val userName: String
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val userName: String,
+    val background: String
 )
 
 @Entity(tableName = "section", foreignKeys = [ForeignKey(entity = Board::class, parentColumns = arrayOf("id"), childColumns = arrayOf("boardId"), onDelete = ForeignKey.CASCADE)])

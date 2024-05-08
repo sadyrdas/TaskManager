@@ -146,9 +146,3 @@ fun SettingsScreen(navController: NavHostController, drawerState: DrawerState) {
     }
 }
 
-
-@Preview
-@Composable
-fun PreviewSettingsScreen() {
-    SettingsScreen(navController = rememberNavController(), drawerState = DrawerState(DrawerValue.Closed))
-}

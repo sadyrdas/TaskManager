@@ -43,6 +43,7 @@ class BoardViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             val boards = when (currentSortState) {
                 SortTypeForBoard.SORTED_BY_TITLE_ASC -> boardDAO.getBoardSortedASCByTitle()
+                SortTypeForBoard.SORTED_BY_TITLE_DESC -> boardDAO.getBoardSortedDESCByTitle()
                 else -> boardDAO.getAll()
             }
             _state.update { currentState ->
@@ -65,6 +66,13 @@ class BoardViewModel(
     fun sortBoardsByTitleAsc() {
         if (currentSortState != SortTypeForBoard.SORTED_BY_TITLE_ASC) {
             currentSortState = SortTypeForBoard.SORTED_BY_TITLE_ASC
+            fetchBoards()
+        }
+    }
+
+    fun sortBoardsByTitleDesc() {
+        if (currentSortState != SortTypeForBoard.SORTED_BY_TITLE_DESC) {
+            currentSortState = SortTypeForBoard.SORTED_BY_TITLE_DESC
             fetchBoards()
         }
     }
@@ -148,6 +156,8 @@ class BoardViewModel(
                 sections.remove(event.section)
                 _state.update { it.copy(sections = sections) }
             }
+
+            else -> {}
         }
     }
 }

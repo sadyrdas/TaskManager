@@ -22,4 +22,7 @@ interface BoardDAO {
 
     @Query("SELECT * FROM board ORDER BY title ASC")
     fun getBoardSortedASCByTitle(): List<Board>
+
+    @Query("SELECT * FROM board ORDER BY title DESC")
+    fun getBoardSortedDESCByTitle(): List<Board>
 }
