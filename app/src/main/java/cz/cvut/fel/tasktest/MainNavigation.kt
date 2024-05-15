@@ -165,7 +165,7 @@ fun MainNavigation(
                 ArticlesScreen(navController,viewModel, drawerState)
             }
             composable(MainRoute.Statistics.name) {
-                StatisticsScreen(navController, viewModel,drawerState)
+                StatisticsScreen(navController, taskViewModel,viewTagModel,sectionViewModel,drawerState)
             }
             composable(MainRoute.Settings.name) {
                 SettingsScreen(navController,drawerState)
