@@ -16,7 +16,7 @@ data class Task(
     val startDate: String? = null,
     val endDate: String? = null,
     val sectionId: Long,
-    val cover: String? = ""
+    val cover: String? = "",
 )
 
 @Entity(tableName = "note")
@@ -60,4 +60,11 @@ data class Section(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val title: String,
     val boardId: Long
+)
+
+@Entity(tableName = "photos")
+data class Photos(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val photo: String,
+    val taskId: Long
 )

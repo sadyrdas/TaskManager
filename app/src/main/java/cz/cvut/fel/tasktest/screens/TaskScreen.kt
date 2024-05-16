@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,7 +22,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
@@ -117,15 +120,20 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
         taskViewModel.fetchTagsForTask(taskId)
     }
 
+    LaunchedEffect(taskId){
+        taskViewModel.getPhotos(taskId)
+    }
+
     // Observe tags for the task
     val tagsForTask by taskViewModel.tagsForTask.collectAsState()
+    val photosForTask by taskViewModel.photosForTask.collectAsState()
 
 
     LaunchedEffect(taskId) {
         taskViewModel.getTaskState(taskId)
     }
-    LaunchedEffect(key1 = true) { // key1 = true ensures this only runs once when the composable enters the composition
-        tagViewModel.fetchTags() // Call fetch boards if not automatically handled in ViewModel init
+    LaunchedEffect(taskId) { // key1 = true ensures this only runs once when the composable enters the composition
+        taskViewModel.fetchPhotosForTask(taskId) // Call fetch boards if not automatically handled in ViewModel init
     }
 
 
@@ -164,6 +172,7 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
     fun handleImageCapture(uri: Uri) {
         selectedImageUri = uri
         showCamera = false
+        taskViewModel.onEvent(TaskEvent.SetPhoto(uri.toString(), taskId))
     }
 
     var hasCameraPermission by remember {
@@ -198,19 +207,11 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
         },
 
     ) { paddingValues ->
-        if (showCamera) {
-            CameraView(
-                outputDirectory = getOutputDirectory(),
-                executor = Executors.newSingleThreadExecutor(),
-                onImageCaptured = ::handleImageCapture,
-                onError = {},
-                navController = navController
-            )
-        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState(), reverseScrolling = true)
         ) {
             val imageUri = taskState?.cover
             Box() {
@@ -359,7 +360,9 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                     .padding(start = 16.dp, top = 16.dp)
             ) {
                 Row {
-                    Text("Tags:", modifier = Modifier.padding(start = 16.dp).clickable { toggleDialog() }) // Adding padding for the "Tags" text
+                    Text("Tags:", modifier = Modifier
+                        .padding(start = 16.dp)
+                        .clickable { toggleDialog() }) // Adding padding for the "Tags" text
                     Row(modifier = Modifier.padding(start = 16.dp, top = 8.dp)) {
                         tagsForTask.forEach { tag ->
                             Text(
@@ -405,14 +408,14 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                             text = convertToDate(dataStart),
                             modifier = Modifier
                                 .padding(bottom = 4.dp)
-                                .clickable { openDatePicker = true})
+                                .clickable { openDatePicker = true })
 
                     } else {
                         Text(
                             text = "Starting..",
                             modifier = Modifier
                                 .padding(bottom = 4.dp)
-                                .clickable { openDatePicker = true})
+                                .clickable { openDatePicker = true })
                     }
                     Divider(
                         modifier = Modifier
@@ -424,13 +427,13 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                             text = convertToDate(dataEnd),
                             modifier = Modifier
                                 .padding(bottom = 4.dp)
-                                .clickable { openEndDatePicker = true})
+                                .clickable { openEndDatePicker = true })
                     } else {
                         Text(
                             text = "Ending",
                             modifier = Modifier
                                 .padding(bottom = 4.dp)
-                                .clickable { openEndDatePicker = true})
+                                .clickable { openEndDatePicker = true })
                     }
 
                 }
@@ -480,9 +483,21 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                 }
             }
 
-            selectedImageUri?.let { uri ->
+//            selectedImageUri?.let { uri ->
+//                Image(
+//                    painter = rememberImagePainter(uri),
+//                    contentDescription = "Selected Image",
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .height(200.dp)
+//                        .padding(vertical = 16.dp),
+//                    contentScale = ContentScale.Crop
+//                )
+//            }
+
+            photosForTask.forEach(){photos ->
                 Image(
-                    painter = rememberImagePainter(uri),
+                    painter = rememberAsyncImagePainter(photos.photo),
                     contentDescription = "Selected Image",
                     modifier = Modifier
                         .fillMaxWidth()
@@ -491,12 +506,13 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                     contentScale = ContentScale.Crop
                 )
             }
+
             Row(
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+//                    .padding(horizontal = 16.dp, vertical = 8.dp)
                     .weight(1f)
             ) {
                 // Круглая маленькая аватарка
@@ -579,7 +595,8 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                                     text = "Add photo",
                                     style = MaterialTheme.typography.bodyLarge,
                                     modifier = Modifier
-                                        .padding(16.dp).clickable {
+                                        .padding(16.dp)
+                                        .clickable {
                                             if (!hasCameraPermission) {
                                                 permissionLauncher.launch(Manifest.permission.CAMERA)
                                             } else {
@@ -630,6 +647,15 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                 )
             }
         }
+    }
+    if (showCamera) {
+        CameraView(
+            outputDirectory = getOutputDirectory(),
+            executor = Executors.newSingleThreadExecutor(),
+            onImageCaptured = ::handleImageCapture,
+            onError = {},
+            navController = navController
+        )
     }
 }
 
