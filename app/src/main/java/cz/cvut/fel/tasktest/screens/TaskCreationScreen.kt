@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerState
@@ -76,12 +77,28 @@ fun TaskCreationScreen(navController: NavHostController, drawerState: DrawerStat
     var selectedStartDate by remember { mutableStateOf<Date?>(currentDate) }
     var selectedEndDate by remember { mutableStateOf<Date?>(futureDate) }
 
+    var showInvalidDateDialog by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             CustomAppBar(drawerState = drawerState, title = "Create Task",
                 backgroundColor = MaterialTheme.colorScheme.primaryContainer , imageVector = Icons.Default.Close )
         }
     ) {paddingValues ->
+        if (showInvalidDateDialog) {
+            AlertDialog(
+                onDismissRequest = { showInvalidDateDialog = false },
+                title = { Text("Error") },
+                text = { Text("End date cannot be before start date.") },
+                confirmButton = {
+                    Button(
+                        onClick = { showInvalidDateDialog = false }
+                    ) {
+                        Text("OK")
+                    }
+                }
+            )
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -200,7 +217,13 @@ fun TaskCreationScreen(navController: NavHostController, drawerState: DrawerStat
                                 TextButton(onClick = {
                                     openEndDatePicker = false
                                     selectedEndDate = datePickerState.selectedDateMillis?.let { Date(it) }
-                                    taskViewModel.onEvent(TaskEvent.SetTaskDateEnd(selectedEndDate.toString()))
+                                    if (selectedEndDate != null && selectedStartDate != null && selectedEndDate!!.after(selectedStartDate)) {
+                                        // Если выбранная дата конца больше даты начала, то сохраняем её
+                                        taskViewModel.onEvent(TaskEvent.SetTaskDateStart(selectedStartDate.toString()))
+                                    } else {
+                                        // В противном случае показываем диалоговое окно с ошибкой
+                                        showInvalidDateDialog = true
+                                    }
                                 },
                                     enabled = confirmEnabled.value
                                 ) {
@@ -244,8 +267,16 @@ fun TaskCreationScreen(navController: NavHostController, drawerState: DrawerStat
 
 
                 Button(onClick = {
-                    taskViewModel.onEvent(TaskEvent.SaveTask)
-                    navController.navigate("${MainRoute.CurrentBoard.name}/${selectedBoardId.value}") },
+                    taskViewModel.onEvent(TaskEvent.SetTaskDateStart(selectedStartDate.toString()))
+                    taskViewModel.onEvent(TaskEvent.SetTaskDateEnd(selectedEndDate.toString()))
+                    if (selectedEndDate != null && selectedStartDate != null && selectedEndDate!!.after(selectedStartDate)) {
+                        // Если выбранная дата конца больше даты начала, то сохраняем её
+                        taskViewModel.onEvent(TaskEvent.SaveTask)
+                        navController.navigate("${MainRoute.CurrentBoard.name}/${selectedBoardId.value}")
+                    } else {
+                        // В противном случае показываем диалоговое окно с ошибкой
+                        showInvalidDateDialog = true
+                    } },
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(top = 50.dp)) {
