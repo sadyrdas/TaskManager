@@ -1,0 +1,89 @@
+package cz.cvut.fel.tasktest.notification
+
+import android.annotation.SuppressLint
+import android.app.AlarmManager
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.Service
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import android.os.IBinder
+import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat.getSystemService
+import cz.cvut.fel.tasktest.R
+import cz.cvut.fel.tasktest.data.TaskifyDatabase
+import cz.cvut.fel.tasktest.data.repository.TaskNotificationDAO
+import kotlin.random.Random
+import android.app.PendingIntent
+import android.provider.Settings
+import android.util.Log
+
+class TaskifyNotificationService : Service() {
+    private val NOTIFICATION_CHANNEL_ID = "taskify_notification"
+//    private val PERIODIC_INTERVAL_MILLIS = 5 * 60 * 1000L // 5 minutes
+    private val PERIODIC_INTERVAL_MILLIS = 1 * 30 * 1000L // 5 minutes
+    private lateinit var notificationManager: NotificationManager
+    private lateinit var taskNotificationDao: TaskNotificationDAO
+
+    override fun onCreate() {
+        super.onCreate()
+        Log.d("TaskifyNotificationService", "onStartCommand: Service started")
+
+        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        taskNotificationDao = TaskifyDatabase.getDatabase(applicationContext).taskNotificationDAO()
+        createNotificationChannel()
+        Log.d("TaskifyNotificationService", "onStartCommand: Service started")
+
+    }
+
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        startForeground(startId, createNotification())
+        schedulePeriodicWork()
+        Log.d("TaskifyNotificationService", "AAAAA: PERMISSISON")
+
+
+        return START_STICKY
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                NOTIFICATION_CHANNEL_ID,
+                "Taskify Notifications",
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+    private fun createNotification(): Notification {
+        // Create and return a notification for the foreground service
+        return NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+            .setContentTitle("Taskify")
+            .setContentText("Service is running")
+            .setSmallIcon(R.drawable.taskicon)
+            .setPriority(NotificationManager.IMPORTANCE_HIGH)
+            .setAutoCancel(true)
+            .build()
+    }
+
+    private fun schedulePeriodicWork() {
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val alarmIntent = Intent(this, NotificationWorker::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent,
+            PendingIntent.FLAG_IMMUTABLE)
+
+        alarmManager.setRepeating(
+            AlarmManager.RTC_WAKEUP,
+            System.currentTimeMillis(),
+            PERIODIC_INTERVAL_MILLIS,
+            pendingIntent
+        )
+    }
+
+    override fun onBind(intent: Intent?): IBinder? {
+        return null
+    }
+}

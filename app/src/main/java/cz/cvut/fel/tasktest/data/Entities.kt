@@ -68,3 +68,12 @@ data class Photos(
     val photo: String,
     val taskId: Long
 )
+
+@Entity(tableName = "task_notification")
+data class TaskNotification(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val taskId: Long,
+    val exceptedEndDate: String? = null,
+)
+
