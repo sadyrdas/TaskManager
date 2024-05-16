@@ -150,8 +150,10 @@ fun filterTasks(tasks: List<Task>, selectedOption: String): List<Task> {
         if (startDate.isNullOrEmpty()) {
             selectedOption == "Yearly" // ehehee
         } else {
+
             val format = SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy")
             val date = format.parse(startDate)
+
 
             (date?.time ?: 0) > System.currentTimeMillis() - timeInMillis
         }
