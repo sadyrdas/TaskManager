@@ -61,4 +61,23 @@ interface TaskDAO {
 
     @Query("UPDATE task SET description = :description WHERE id = :taskId")
     fun updateTaskDescription(taskId: Long, description: String)
+
+    @Query("SELECT * FROM task ORDER BY title ASC")
+    fun getTasksSortedByTitleAsc(): List<Task>
+
+    @Query("SELECT * FROM task ORDER BY title DESC")
+    fun getTasksSortedByTitleDesc(): List<Task>
+
+    @Query("SELECT * FROM task ORDER BY startDate ASC")
+    fun getTasksSortedByStartDateAsc(): List<Task>
+
+    @Query("SELECT * FROM task ORDER BY startDate DESC")
+    fun getTasksSortedByStartDateDesc(): List<Task>
+
+    @Query("SELECT * FROM task ORDER BY endDate ASC")
+    fun getTasksSortedByEndDateAsc(): List<Task>
+
+    @Query("SELECT * FROM task ORDER BY endDate DESC")
+    fun getTasksSortedByEndDateDesc(): List<Task>
+
 }
