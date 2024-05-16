@@ -144,12 +144,12 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
         taskViewModel.fetchDates(taskId)
     }
 
-    LaunchedEffect(selectedStartDate, selectedEndDate) {
-        if (selectedStartDate != null && selectedEndDate != null && selectedStartDate!!.after(selectedEndDate)) {
-            // Показываем диалоговое окно с сообщением об ошибке
-            showInvalidDateDialog = true
-        }
-    }
+//    LaunchedEffect(selectedStartDate, selectedEndDate) {
+//        if (selectedStartDate != null && selectedEndDate != null && selectedStartDate!!.after(selectedEndDate)) {
+//            // Показываем диалоговое окно с сообщением об ошибке
+//            showInvalidDateDialog = true
+//        }
+//    }
 
     // State to manage dialog visibility
     var isDialogOpen by remember { mutableStateOf(false) }
@@ -556,7 +556,8 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                             TextButton(onClick = {
                                 openEndDatePicker = false
                                 selectedEndDate = datePickerState.selectedDateMillis?.let { Date(it) }
-                                if (selectedEndDate != null && selectedStartDate != null && selectedEndDate!!.after(selectedStartDate)) {
+
+                                if (selectedEndDate != null && fromStringToDate(dataStart) != null && selectedEndDate!!.after(fromStringToDate(dataStart))) {
                                     // Если выбранная дата конца больше даты начала, то сохраняем её
                                     taskViewModel.onEvent(TaskEvent.updateDateEnd(selectedEndDate.toString(), taskId))
                                 } else {
@@ -691,6 +692,15 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
     }
 }
 
+fun fromStringToDate(dataStart: String): Date? {
+    val format = SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy")
+    return try {
+        format.parse(dataStart)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
+}
 @Composable
 fun TagsDialog(
     tagViewModel: TagViewModel,

@@ -11,6 +11,7 @@ import cz.cvut.fel.tasktest.data.Photos
 import cz.cvut.fel.tasktest.data.Tag
 import cz.cvut.fel.tasktest.data.Task
 import cz.cvut.fel.tasktest.data.TaskTagCrossRef
+import java.util.Date
 
 @Dao
 interface TaskDAO {
@@ -67,4 +68,6 @@ interface TaskDAO {
 
     @Query("UPDATE task SET endDate = :dateEnd WHERE id = :taskId")
     fun updateDateEnd(taskId: Long, dateEnd: String)
+    @Query("SELECT startDate FROM task WHERE id = :taskId")
+    fun getStartDateOfTask(taskId: Long): Date
 }
