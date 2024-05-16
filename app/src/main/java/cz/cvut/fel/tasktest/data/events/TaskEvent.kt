@@ -18,4 +18,5 @@ sealed interface TaskEvent {
     data class DeleteTask(val id: Long) : TaskEvent
     data class SetTaskCover(val cover: String) : TaskEvent
     data class UpdateTaskTag(val tag: Tag) : TaskEvent
+    data class SetPhoto(val photo: String, val id: Long) : TaskEvent
 }

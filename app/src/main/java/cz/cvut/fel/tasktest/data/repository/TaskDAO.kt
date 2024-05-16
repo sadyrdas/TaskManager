@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import cz.cvut.fel.tasktest.data.Note
+import cz.cvut.fel.tasktest.data.Photos
 import cz.cvut.fel.tasktest.data.Tag
 import cz.cvut.fel.tasktest.data.Task
 import cz.cvut.fel.tasktest.data.TaskTagCrossRef
@@ -14,7 +15,7 @@ import cz.cvut.fel.tasktest.data.TaskTagCrossRef
 @Dao
 interface TaskDAO {
     @Insert
-    fun insertTask(task: Task) : Long
+    fun insertTask(task: Task): Long
 
     @Query("DELETE FROM task WHERE id = :id")
     fun deleteTask(id: Long)
@@ -24,10 +25,12 @@ interface TaskDAO {
 
     @Query("SELECT * FROM task WHERE id = :id")
     fun getTaskById(id: Long): Task
+
     @Insert
     fun insertNote(note: Note)
+
     @Insert
-    fun insertTag(tag: Tag) : Long
+    fun insertTag(tag: Tag): Long
 
 
     @Query("SELECT * FROM tag INNER JOIN task_tag_cross_ref ON tag.id = task_tag_cross_ref.tagId WHERE task_tag_cross_ref.taskId = :taskId")

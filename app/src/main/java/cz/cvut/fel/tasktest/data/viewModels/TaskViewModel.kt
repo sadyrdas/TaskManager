@@ -9,11 +9,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import cz.cvut.fel.tasktest.data.Converters
+import cz.cvut.fel.tasktest.data.Photos
 import cz.cvut.fel.tasktest.data.SortTypeForBoard
 import cz.cvut.fel.tasktest.data.Tag
 import cz.cvut.fel.tasktest.data.Task
 import cz.cvut.fel.tasktest.data.events.BoardEvent
 import cz.cvut.fel.tasktest.data.events.TaskEvent
+import cz.cvut.fel.tasktest.data.repository.PhotoDAO
 import cz.cvut.fel.tasktest.data.repository.TaskDAO
 import cz.cvut.fel.tasktest.data.states.BoardState
 import cz.cvut.fel.tasktest.data.states.TaskState
@@ -29,20 +31,31 @@ import java.io.FileOutputStream
 import java.util.UUID
 
 class TaskViewModel(
-    private val taskDAO: TaskDAO
+    private val taskDAO: TaskDAO,
+    private val photoDAO: PhotoDAO
 ) : ViewModel() {
     private val _state = MutableStateFlow(TaskState())
     val state: StateFlow<TaskState> = _state.asStateFlow()
     private val _taskState = mutableStateOf<TaskState?>(null)
     val taskState: State<TaskState?> = _taskState
     private val _tagsForTask = MutableStateFlow<List<Tag>>(emptyList())
+    private val _photosForTask = MutableStateFlow<List<Photos>>(emptyList())
     val tagsForTask: StateFlow<List<Tag>> = _tagsForTask.asStateFlow()
+    val photosForTask: StateFlow<List<Photos>> = _photosForTask.asStateFlow()
     val navController: NavController? = null
 
     fun fetchTagsForTask(taskId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             val tags = taskDAO.getTagsForTask(taskId)
             _tagsForTask.value = tags
+        }
+    }
+
+    fun fetchPhotosForTask(taskId: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val photos = photoDAO.getPhotosForTask(taskId)
+            // Обновляем состояние для отображения списка фото
+            _photosForTask.value = photos
         }
     }
 
@@ -175,6 +188,11 @@ class TaskViewModel(
             is TaskEvent.SetTaskCover -> {
                 _state.update { it.copy(cover = event.cover) }
             }
+            is TaskEvent.SetPhoto -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    photoDAO.savePhotoToTask(event.id, event.photo)
+                }
+            }
         }
     }
 
@@ -207,4 +225,28 @@ class TaskViewModel(
         }
     }
 
+    fun savePhotoToTask(taskId: Long, photoUri: Uri) {
+        viewModelScope.launch {
+            try {
+                // Выполняем сохранение фото в базе данных через репозиторий
+                photoDAO.savePhotoToTask(taskId, photoUri.toString()) // Предполагается, что в вашей модели задачи поле для фото имеет тип String и сохраняет URI в виде строки
+            } catch (e: Exception) {
+                // Обработка ошибок, если не удалось сохранить фото
+            }
+        }
+    }
+
+
+    fun getPhotos(taskId: Long) {
+        viewModelScope.launch {
+            try {
+                // Получаем список фото для задачи из базы данных через репозиторий
+                val photos = photoDAO.getPhotosForTask(taskId)
+                // Обновляем состояние для отображения списка фото
+                // _photosState.value = photos
+            } catch (e: Exception) {
+                // Обработка ошибок, если не удалось получить список фото
+            }
+        }
+    }
 }
