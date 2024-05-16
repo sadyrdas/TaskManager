@@ -61,4 +61,10 @@ interface TaskDAO {
 
     @Query("UPDATE task SET description = :description WHERE id = :taskId")
     fun updateTaskDescription(taskId: Long, description: String)
+
+    @Query("UPDATE task SET startDate = :dateStart WHERE id = :taskId")
+    fun updateDateStart(taskId: Long, dateStart: String)
+
+    @Query("UPDATE task SET endDate = :dateEnd WHERE id = :taskId")
+    fun updateDateEnd(taskId: Long, dateEnd: String)
 }

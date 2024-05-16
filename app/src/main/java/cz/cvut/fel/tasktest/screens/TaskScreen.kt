@@ -8,7 +8,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -108,6 +107,7 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
     var openEndDatePicker by remember { mutableStateOf(false) }
     var selectedStartDate by remember { mutableStateOf<Date?>(null) }
     var selectedEndDate by remember { mutableStateOf<Date?>(null) }
+    var showInvalidDateDialog by remember { mutableStateOf(false) }
 
     var showConfirmDialogAboutDeleteBoard by remember { mutableStateOf(false) }
 
@@ -136,6 +136,20 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
         taskViewModel.fetchPhotosForTask(taskId) // Call fetch boards if not automatically handled in ViewModel init
     }
 
+    LaunchedEffect(key1 = null) {
+        taskViewModel.fetchTasks()
+    }
+
+    LaunchedEffect(taskId) {
+        taskViewModel.fetchDates(taskId)
+    }
+
+    LaunchedEffect(selectedStartDate, selectedEndDate) {
+        if (selectedStartDate != null && selectedEndDate != null && selectedStartDate!!.after(selectedEndDate)) {
+            // Показываем диалоговое окно с сообщением об ошибке
+            showInvalidDateDialog = true
+        }
+    }
 
     // State to manage dialog visibility
     var isDialogOpen by remember { mutableStateOf(false) }
@@ -150,6 +164,7 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
         onResult = { uri: Uri? ->
             uri?.let {
                 taskViewModel.handleImageSelection(taskId, context, uri)
+                TaskEvent.SetTaskCover(uri.toString(), taskId)
             }
         }
     )
@@ -205,8 +220,82 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                 )
             }
         },
+        bottomBar = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                horizontalAlignment = Alignment.End
+            ) {
+                Row(
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Круглая маленькая аватарка
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(Color.Gray)
+                            .align(Alignment.CenterVertically)
+                    ) {
+                        // аватара сюда
+                    }
+
+                    // Текстовое поле с плейсхолдером "Add comment"
+                    TextField(
+                        value = "", // Ваше значение комментария
+                        onValueChange = { /* Обработчик изменения значения комментария */ },
+                        placeholder = { Text("Add comment") },
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 8.dp),
+                        shape = MaterialTheme.shapes.extraLarge
+                    )
+
+                    // Иконка отправки
+                    IconButton(
+                        onClick = { /* Действие при отправке комментария */ }
+                    ) {
+                        Icon(
+                            Icons.Default.Send,
+                            contentDescription = "Send",
+                            tint = Color.Black // Цвет иконки
+                        )
+                    }
+
+                    // Иконка вложения
+                    IconButton(
+                        onClick = {
+                            isDrawerOpen = true
+                        }
+                    ) {
+                        Icon(
+                            Icons.Default.AddCircle,
+                            contentDescription = "Attachment",
+                            tint = Color.Black // Цвет иконки
+                        )
+                    }
+                }
+            }
+        }
 
     ) { paddingValues ->
+        if (showInvalidDateDialog) {
+            AlertDialog(
+                onDismissRequest = { showInvalidDateDialog = false },
+                title = { Text("Error") },
+                text = { Text("End date cannot be before start date.") },
+                confirmButton = {
+                    Button(
+                        onClick = { showInvalidDateDialog = false }
+                    ) {
+                        Text("OK")
+                    }
+                }
+            )
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -306,7 +395,7 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                 modifier = Modifier
                     .padding(top = 12.dp)
                     .height(2.dp),
-                color = Color.Red, // Цвет разделителя
+                color = Color.DarkGray, // Цвет разделителя
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -351,7 +440,7 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                 modifier = Modifier
                     .padding(top = 12.dp)
                     .height(2.dp),
-                color = Color.Red, // Цвет разделителя
+                color = Color.DarkGray // Цвет разделителя
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -362,7 +451,7 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                 Row {
                     Text("Tags:", modifier = Modifier
                         .padding(start = 16.dp)
-                        .clickable { toggleDialog() }) // Adding padding for the "Tags" text
+                        .clickable { toggleDialog() })
                     Row(modifier = Modifier.padding(start = 16.dp, top = 8.dp)) {
                         tagsForTask.forEach { tag ->
                             Text(
@@ -371,7 +460,6 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                                     .padding(end = 8.dp) // Add padding between tags
                                     .background(Color(android.graphics.Color.parseColor(tag.background)))
                             )
-                            // You can customize the UI to display tags as you prefer
                         }
                     }
                 }
@@ -389,7 +477,7 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                 modifier = Modifier
                     .padding(top = 12.dp)
                     .height(2.dp),
-                color = Color.Red, // Цвет разделителя
+                color = Color.DarkGray // Цвет разделителя
             )
 
             Row(
@@ -446,7 +534,7 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                             TextButton(onClick = {
                                 openDatePicker = false
                                 selectedStartDate = datePickerState.selectedDateMillis?.let { Date(it) }
-                                taskViewModel.onEvent(TaskEvent.SetTaskDateStart(selectedStartDate.toString()))
+                                taskViewModel.onEvent(TaskEvent.updateDateStart(selectedStartDate.toString(), taskId))
                             },
                                 enabled = confirmEnabled.value
                             ) {
@@ -468,7 +556,13 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                             TextButton(onClick = {
                                 openEndDatePicker = false
                                 selectedEndDate = datePickerState.selectedDateMillis?.let { Date(it) }
-                                taskViewModel.onEvent(TaskEvent.SetTaskDateEnd(selectedEndDate.toString()))
+                                if (selectedEndDate != null && selectedStartDate != null && selectedEndDate!!.after(selectedStartDate)) {
+                                    // Если выбранная дата конца больше даты начала, то сохраняем её
+                                    taskViewModel.onEvent(TaskEvent.updateDateEnd(selectedEndDate.toString(), taskId))
+                                } else {
+                                    // В противном случае показываем диалоговое окно с ошибкой
+                                    showInvalidDateDialog = true
+                                }
                             },
                                 enabled = confirmEnabled.value
                             ) {
@@ -483,17 +577,6 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                 }
             }
 
-//            selectedImageUri?.let { uri ->
-//                Image(
-//                    painter = rememberImagePainter(uri),
-//                    contentDescription = "Selected Image",
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .height(200.dp)
-//                        .padding(vertical = 16.dp),
-//                    contentScale = ContentScale.Crop
-//                )
-//            }
 
             photosForTask.forEach(){photos ->
                 Image(
@@ -505,59 +588,6 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                         .padding(vertical = 16.dp),
                     contentScale = ContentScale.Crop
                 )
-            }
-            Row(
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxWidth()
-//                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .weight(1f)
-            ) {
-                // Круглая маленькая аватарка
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                        .background(Color.Gray)
-                ) {
-                    // аватара сюда
-                }
-
-                // Текстовое поле с плейсхолдером "Add comment"
-                TextField(
-                    value = "", // Ваше значение комментария
-                    onValueChange = { /* Обработчик изменения значения комментария */ },
-                    placeholder = { Text("Add comment") },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 8.dp),
-                    shape = MaterialTheme.shapes.extraLarge
-                )
-
-                // Иконка отправки
-                IconButton(
-                    onClick = { /* Действие при отправке комментария */ }
-                ) {
-                    Icon(
-                        Icons.Default.Send,
-                        contentDescription = "Send",
-                        tint = Color.Black // Цвет иконки
-                    )
-                }
-
-                // Иконка вложения
-                IconButton(
-                    onClick = {
-                        isDrawerOpen = true
-                    }
-                ) {
-                    Icon(
-                        Icons.Default.AddCircle,
-                        contentDescription = "Attachment",
-                        tint = Color.Black // Цвет иконки
-                    )
-                }
             }
 
             if (isDrawerOpen) {
@@ -595,13 +625,15 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                                     style = MaterialTheme.typography.bodyLarge,
                                     modifier = Modifier
                                         .padding(16.dp)
-                                        .clickable {
+                                        .clickable
+                                        {
                                             if (!hasCameraPermission) {
                                                 permissionLauncher.launch(Manifest.permission.CAMERA)
                                             } else {
                                                 showCamera = true
                                             }
                                         }
+                                    , color = Color.Black
                                 )
                             }
 
@@ -646,6 +678,7 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                 )
             }
         }
+
     }
     if (showCamera) {
         CameraView(
@@ -724,10 +757,3 @@ fun convertToDate(input: String): String {
     val outputFormat = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
     return outputFormat.format(date)
 }
-
-
-//@Preview(showBackground =  true)
-//@Composable
-//fun TaskScreenPreview() {
-//    TaskScreen(drawerState = rememberDrawerState(DrawerValue.Closed))
-//}
