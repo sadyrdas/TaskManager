@@ -50,6 +50,11 @@ import cz.cvut.fel.tasktest.data.viewModels.TagViewModel
 import cz.cvut.fel.tasktest.data.viewModels.TaskViewModel
 import cz.cvut.fel.tasktest.ui.theme.Purple80
 import cz.cvut.fel.tasktest.ui.theme.PurpleGrey80
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.Period
+import java.util.Calendar
+import java.util.TimeZone
 
 const val FNSHD_STRING = "VERYUNLIKELYTOCALLTAGTHATWAYSOIT'SOKTOKEEPFINISHEDCOUNTINHERE"
 
@@ -71,7 +76,7 @@ fun StatisticsScreen(navController: NavHostController, taskViewModel: TaskViewMo
 
 
     }
-    LaunchedEffect (sectionState) {
+    LaunchedEffect (key1 = sectionState, key2 = selectedOption) {
         tagMap = populateTagMap(taskViewModel, tagViewModel, taskState, tagState, sectionViewModel, sectionState, sections, selectedOption)
 
     }
@@ -124,10 +129,35 @@ fun populateTagMap(
     return tagMap
 }
 
-fun filterTasks(tasks: List<Task>, selectedOption: String): Any {
-    TODO("Not yet implemented")
-}
+fun filterTasks(tasks: List<Task>, selectedOption: String): List<Task> {
+    val currentTimeMillis = Calendar.getInstance().timeInMillis
+    val calendar = Calendar.getInstance()
 
+    // Calculate cutoff time based on selected option
+    val timeInMillis = when (selectedOption) {
+        "Monthly" -> calendar.apply { add(Calendar.MONTH, -1) }.timeInMillis
+        "Quarterly" -> calendar.apply { add(Calendar.MONTH, -3) }.timeInMillis
+        "Semi-annual" -> calendar.apply { add(Calendar.MONTH, -6) }.timeInMillis
+        "Yearly" -> calendar.apply { add(Calendar.YEAR, -1) }.timeInMillis
+        else -> throw IllegalArgumentException("Invalid option")
+    }
+
+    // Filter tasks based on startDate
+    val filteredTasks = tasks.filter { task ->
+        val startDate = task.startDate
+        if (startDate.isNullOrEmpty()) {
+            selectedOption == "Yearly" // ehehee
+        } else {
+            val dateFormat = SimpleDateFormat("EEE MMM dd HH:mm:ss 'GMT'Z yyyy")
+            dateFormat.timeZone = TimeZone.getTimeZone("GMT+01:00")
+            val date = dateFormat.parse(startDate)
+
+            (date?.time ?: 0) > System.currentTimeMillis() - timeInMillis
+        }
+    }
+
+    return filteredTasks
+}
 
 fun taskFinished(byId: Section?): Boolean {
     return (byId?.title?.lowercase()?.replace("\\s".toRegex(), "") ?: "") == "done"
