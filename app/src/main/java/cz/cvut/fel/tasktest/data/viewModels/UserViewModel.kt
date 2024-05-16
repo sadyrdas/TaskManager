@@ -1,15 +1,13 @@
 package cz.cvut.fel.tasktest.data.viewModels
 
+
 import android.content.Context
 import android.net.Uri
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cz.cvut.fel.tasktest.data.User
 import cz.cvut.fel.tasktest.data.events.UserEvent
 import cz.cvut.fel.tasktest.data.repository.UserDAO
-import cz.cvut.fel.tasktest.data.states.BoardState
 import cz.cvut.fel.tasktest.data.states.UserState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,65 +27,54 @@ class UserViewModel(
     private val _userState = MutableStateFlow(UserState())
     val userState: StateFlow<UserState?> = _userState.asStateFlow()
 
-
-
-    fun setUsername(newUsername: String) {
-        _userState.value?.let { currentState ->
-            _userState.value = currentState.copy(userName = newUsername)
-        }
+    init {
+        fetchUser()
     }
 
-    // Function to handle changes to the background image
-    fun setBackground(newBackground: String) {
-        _userState.value?.let { currentState ->
-            _userState.value = currentState.copy(background = newBackground)
-        }
-    }
 
-    // Function to save user changes to the database
-    fun saveUserChanges() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _userState.value?.let { currentState ->
-                val updatedUser = User(userName = currentState.userName, background = currentState.background)
-                userDAO.insertOrUpdateUser(updatedUser)
-            }
-        }
-    }
-
-    fun clearAllUsers() {
+    private fun clearAllUsers() {
         viewModelScope.launch(Dispatchers.IO) {
             userDAO.deleteAllUsers()
         }
     }
 
-    private suspend fun checkAndInitializeUserData() {
-        withContext(Dispatchers.IO) {
-            val existingUserData = userDAO.getUser("Username")
-            if (existingUserData == null) {
-                // Database is empty or default user not created, insert default user data
-                val defaultUserData = User(userName = "Username", background = "defaultBackground")
-                userDAO.insertOrUpdateUser(defaultUserData)
-                _userState.value = UserState(userName = defaultUserData.userName, background = defaultUserData.background)
-            } else {
-                // Database already has default user data, no need to insert
-                _userState.value = UserState(userName = existingUserData.userName, background = existingUserData.background)
-            }
-        }
-    }
-
-    suspend fun fetchUser() {
-        checkAndInitializeUserData() // Ensure default user is initialized
-
+    private fun checkAndInitializeUserData() {
         viewModelScope.launch(Dispatchers.IO) {
-            val user = userDAO.getUser("Username")
-            if (user != null) {
-                _userState.update { it.copy(userName = user.userName, background = user.background) }
+            val users = userDAO.getAllUsers()
+            val userState = if (users.isEmpty()) {
+                // If no users found, insert default user
+                val defaultUser = UserState(userName = "username", background = "defaultbackground")
+                userDAO.insertUser(User(userName = "username", background = "defaultbackground"))
+                defaultUser
             } else {
-                // Handle the case where the user doesn't exist
-                // For example, you might want to log an error or show a message to the user
+                // If users found, get the first user (assuming there's only one user for simplicity)
+                val user = users.first()
+                UserState(userName = user.userName, background = user.background)
             }
+            _userState.value = userState
         }
     }
+
+
+
+    fun fetchUser() {
+        viewModelScope.launch(Dispatchers.IO) {
+            userDAO.getAllUsers()
+        }
+        checkAndInitializeUserData()
+    }
+
+    private fun updateUser() {
+        clearAllUsers()
+        val userName = _userState.value.userName
+        val background = _userState.value.background
+        val user = User(userName = userName, background = background)
+        viewModelScope.launch(Dispatchers.IO) {
+            userDAO.insertUser(user)
+        }
+    }
+
+
 
 
 
@@ -124,18 +111,13 @@ class UserViewModel(
     fun onEvent(event: UserEvent) {
         when (event) {
             is UserEvent.SetUsername -> {
-                setUsername(event.userName)
+                _userState.update { it.copy(userName = event.userName) }
             }
             is UserEvent.SaveUser -> {
-                val userName = _userState.value.userName
-                val background = _userState.value.background
-                val user = User(userName = userName, background = background)
-                viewModelScope.launch(Dispatchers.IO) {
-                    userDAO.insertOrUpdateUser(user)
-                }
+                updateUser()
             }
             is UserEvent.SetBackground -> {
-                setBackground(event.background)
+                _userState.update { it.copy(background = event.background) }
             }
             is UserEvent.ImageSelected -> {
                 _userState.update { it.copy(background = event.imagePath) }
