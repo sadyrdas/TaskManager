@@ -47,7 +47,11 @@ import cz.cvut.fel.tasktest.data.viewModels.SectionViewModel
 import cz.cvut.fel.tasktest.data.events.TaskEvent
 import cz.cvut.fel.tasktest.data.viewModels.TagViewModel
 import cz.cvut.fel.tasktest.data.viewModels.TaskViewModel
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,8 +64,17 @@ fun TaskCreationScreen(navController: NavHostController, drawerState: DrawerStat
 
     var openDatePicker by remember { mutableStateOf(false) }
     var openEndDatePicker by remember { mutableStateOf(false) }
-    var selectedStartDate by remember { mutableStateOf<Date?>(null) }
-    var selectedEndDate by remember { mutableStateOf<Date?>(null) }
+
+
+    val currentDate = Date()
+
+    val calendar = Calendar.getInstance()
+    calendar.time = currentDate
+    calendar.add(Calendar.WEEK_OF_YEAR, 1)
+
+    val futureDate = calendar.time
+    var selectedStartDate by remember { mutableStateOf<Date?>(currentDate) }
+    var selectedEndDate by remember { mutableStateOf<Date?>(futureDate) }
 
     Scaffold(
         topBar = {
@@ -141,7 +154,7 @@ fun TaskCreationScreen(navController: NavHostController, drawerState: DrawerStat
                     )
                     Column {
                         Text(
-                            text = selectedStartDate?.toString() ?: "Starting..", // Display the selected date or "Starting.." if null
+                            text = convertToDate(selectedStartDate.toString()) ?: "Starting..", // Display the selected date or "Starting.." if null
                             modifier = Modifier
                                 .padding(bottom = 4.dp)
                                 .clickable(onClick = { openDatePicker = true }),
@@ -150,7 +163,7 @@ fun TaskCreationScreen(navController: NavHostController, drawerState: DrawerStat
                             .padding(bottom = 4.dp)
                             .width(250.dp))
                         Text(
-                            text = selectedEndDate?.toString() ?: "Date of end", // Display the selected end date or "Date of end" if null
+                            text = convertToDate(selectedEndDate.toString()) ?: "Date of end", // Display the selected end date or "Date of end" if null
                             modifier = Modifier
                                 .padding(bottom = 4.dp)
                                 .clickable(onClick = { openEndDatePicker = true }),
@@ -344,3 +357,4 @@ fun DropDownSection(
         }
     }
 }
+

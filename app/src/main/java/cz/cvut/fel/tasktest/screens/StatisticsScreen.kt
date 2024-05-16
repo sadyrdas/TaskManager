@@ -68,13 +68,11 @@ fun StatisticsScreen(navController: NavHostController, taskViewModel: TaskViewMo
     val (selectedOption, onOptionSelected) = remember { mutableStateOf("Yearly") }
 
     var tagMap by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
+    val currentPage = navController.currentDestination
 
     LaunchedEffect(key1 = true) {
-
         taskViewModel.fetchTasks()
         tagViewModel.fetchTags()
-
-
     }
     LaunchedEffect (key1 = sectionState, key2 = selectedOption) {
         tagMap = populateTagMap(taskViewModel, tagViewModel, taskState, tagState, sectionViewModel, sectionState, sections, selectedOption)
@@ -96,18 +94,22 @@ fun populateTagMap(
     sections: List<Section>,
     selectedOption: String
 ): Map<String, Int> {
+
     val tagMap = mutableMapOf<String, Int>()
     tagMap[FNSHD_STRING] = 0
-    val checkboxValue = "/here"
     val tasks = filterTasks(taskState.tasks, selectedOption)
-
     sectionViewmodel.fetchSectionsByIds(tasks.map { it.sectionId })
+
+    if (sections.isEmpty()){
+        return tagMap;
+    }
     tagViewModel.fetchTags()
     tagViewModel.state.value.tags.forEach {
         tagMap[it.name] = 0
     }
 
     val sectionMap = mutableMapOf<Long, Section>()
+
     sections.forEach { sectionMap[it.id] = it }
 
     tasks.forEach { task ->
