@@ -47,6 +47,7 @@ import cz.cvut.fel.tasktest.screens.BoardCreationScreen
 import cz.cvut.fel.tasktest.screens.CurrentBoardScreen
 import cz.cvut.fel.tasktest.screens.SectionCreationScreen
 import cz.cvut.fel.tasktest.screens.SettingsScreen
+import cz.cvut.fel.tasktest.screens.StatisticsScreen
 import cz.cvut.fel.tasktest.screens.TagCreationScreen
 import cz.cvut.fel.tasktest.screens.TaskCreationScreen
 import cz.cvut.fel.tasktest.screens.TaskScreen
@@ -55,7 +56,7 @@ import kotlinx.coroutines.launch
 
 enum class MainRoute(value: String) {
     Boards("boards"),
-    Statistics("statistics"),
+        Statistics("statistics"),
     Settings("settings"),
     AccountCustomization("accountCustomization"),
     BoardCreation("boardCreation"),
@@ -164,7 +165,7 @@ fun MainNavigation(
                 ArticlesScreen(navController,viewModel, drawerState)
             }
             composable(MainRoute.Statistics.name) {
-                AboutScreen(drawerState)
+                StatisticsScreen(navController, taskViewModel,viewTagModel,sectionViewModel,drawerState)
             }
             composable(MainRoute.Settings.name) {
                 SettingsScreen(navController,drawerState)

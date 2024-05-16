@@ -33,6 +33,19 @@ class SectionViewModel (
         }
     }
 
+
+    fun fetchSectionsByIds(sectionId:List<Long>){
+        viewModelScope.launch(Dispatchers.IO) {
+            val sections = mutableListOf<Section>()
+            sectionId.forEach {
+                sections.add(sectionDAO.getById(it))
+            }
+            _state.update { currentState ->
+                currentState.copy(sections = sections)
+            }
+        }
+    }
+
     fun onEvent(event: SectionEvent) {
         when (event) {
             is SectionEvent.SaveSection -> {
