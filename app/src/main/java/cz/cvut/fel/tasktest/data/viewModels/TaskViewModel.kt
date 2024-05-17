@@ -11,6 +11,7 @@ import androidx.navigation.NavController
 import cz.cvut.fel.tasktest.data.Converters
 import cz.cvut.fel.tasktest.data.Photos
 import cz.cvut.fel.tasktest.data.SortTypeForBoard
+import cz.cvut.fel.tasktest.data.SortTypeForTask
 import cz.cvut.fel.tasktest.data.Tag
 import cz.cvut.fel.tasktest.data.Task
 import cz.cvut.fel.tasktest.data.events.BoardEvent
@@ -36,6 +37,7 @@ class TaskViewModel(
     private val photoDAO: PhotoDAO
 ) : ViewModel() {
     private val _state = MutableStateFlow(TaskState())
+    private var currentSortState: SortTypeForTask = SortTypeForTask.UNSORTED
     val state: StateFlow<TaskState> = _state.asStateFlow()
     private val _taskState = mutableStateOf<TaskState?>(null)
     val taskState: State<TaskState?> = _taskState
@@ -115,6 +117,24 @@ class TaskViewModel(
         }
 
         return file.absolutePath // Return the file path
+    }
+
+    fun sortTasks(sortType: SortTypeForTask) {
+        currentSortState = sortType
+        viewModelScope.launch(Dispatchers.IO) {
+            val tasks = when (sortType) {
+                SortTypeForTask.UNSORTED -> taskDAO.getAllTasks()
+                SortTypeForTask.START_DATA_ASC -> taskDAO.getTasksSortedByStartDateAsc()
+                SortTypeForTask.END_DATA_DESC -> taskDAO.getTasksSortedByEndDateDesc()
+                SortTypeForTask.TITLE_ASC -> taskDAO.getTasksSortedByTitleAsc()
+                SortTypeForTask.TITLE_DESC -> taskDAO.getTasksSortedByTitleDesc()
+                SortTypeForTask.START_DATA_DESC -> taskDAO.getTasksSortedByStartDateDesc()
+                SortTypeForTask.END_DATA_ASC -> taskDAO.getTasksSortedByEndDateAsc()
+            }
+            launch(Dispatchers.Main) {
+                _state.update { it.copy(tasks = tasks) }
+            }
+        }
     }
 
     private fun updateTaskCover(taskId: Long, cover: String) {

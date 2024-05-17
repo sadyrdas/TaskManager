@@ -69,7 +69,7 @@ fun ArticlesScreen(navController: NavHostController, viewModel: BoardViewModel, 
     val state by viewModel.state.collectAsState()
     var showButtons by remember { mutableStateOf(false) }
     var showConfirmDialogAboutDeleteBoard by remember { mutableStateOf(false) }
-    val (drawerStateForFilter, setDrawerStateForFilter) = remember { mutableStateOf(false) }
+    var isAscendingOrder by remember { mutableStateOf(true) }
 
 
     LaunchedEffect(key1 = true) { // key1 = true ensures this only runs once when the composable enters the composition
@@ -81,7 +81,7 @@ fun ArticlesScreen(navController: NavHostController, viewModel: BoardViewModel, 
                 drawerState = drawerState,
                 title = "Boards",
                 imageVector = Icons.Filled.Menu,
-                backgroundColor = MaterialTheme.colorScheme.primary// Здесь указываем цвет
+                backgroundColor = MaterialTheme.colorScheme.primary
             )
         },
         floatingActionButton = {
@@ -104,10 +104,22 @@ fun ArticlesScreen(navController: NavHostController, viewModel: BoardViewModel, 
                     modifier = Modifier.weight(1f)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                IconButton(onClick = { setDrawerStateForFilter(true)}){
-                    Icon(Icons.Filled.MoreVert, contentDescription = "Filter Icon",
-                        modifier = Modifier
-                            .padding(end = 16.dp)
+                IconButton(
+                    onClick = {
+                        if (isAscendingOrder) {
+                            viewModel.sortBoardsByTitleAsc()
+                        } else {
+                            viewModel.sortBoardsByTitleDesc()
+                        }
+                        isAscendingOrder = !isAscendingOrder
+                    }
+                ) {
+                    // Display appropriate icon based on sorting direction
+                    val iconResourceId = if (isAscendingOrder) R.drawable.arrowup else R.drawable.arrowdown
+                    Icon(
+                        painter = painterResource(id = iconResourceId),
+                        contentDescription = if (isAscendingOrder) "Sort by name ASC" else "Sort by name DESC",
+                        modifier = Modifier.padding(end = 16.dp)
                     )
                 }
             }
@@ -121,15 +133,15 @@ fun ArticlesScreen(navController: NavHostController, viewModel: BoardViewModel, 
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp) // Отступы !!!
-                        .clickable{ navController.navigate("${MainRoute.CurrentBoard.name}/${board.id}") }
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .clickable { navController.navigate("${MainRoute.CurrentBoard.name}/${board.id}") }
                 ) {
                     Image(
                         painter = rememberAsyncImagePainter(board.background),
                         contentDescription = "Board Background",
                         modifier = Modifier.width(100.dp).height(50.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp)) // Отступ между изображением и текстом !!!
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(text = board.title,
                         fontSize = MaterialTheme.typography.bodyLarge.fontSize,
                         modifier = Modifier.weight(1f))
@@ -182,71 +194,10 @@ fun ArticlesScreen(navController: NavHostController, viewModel: BoardViewModel, 
             }
 
         }
-        if (drawerStateForFilter) {
-            FilterDrawerSheet(closeDrawer = { setDrawerStateForFilter(false) }, viewModel)
-        }
-
     }
 }
 
 
-@Composable
-fun FilterDrawerSheet(closeDrawer: () -> Unit, viewModel: BoardViewModel) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.TopEnd
-    ) {
-        Column(
-            modifier = Modifier
-                .width(300.dp)
-                .fillMaxHeight()
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .padding(top = 50.dp)
-        ) {
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 25.dp, vertical = 20.dp)) {
-                Text("Filter your boards", style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(top = 5.dp))
-                IconButton(onClick = closeDrawer) {
-                    Icon(Icons.Filled.Close, "Close")
-                }
-            }
-            Spacer(modifier = Modifier.height(13.dp))
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Box(
-                    modifier = Modifier
-                        .size(12.dp)
-                        .background(Color.Black, CircleShape)
-                )
-                TextButton(onClick = { viewModel.sortBoardsByTitleDesc() },
-                  modifier = Modifier.padding(vertical = 10.dp, horizontal = 10.dp))
-                {
-                    Text("Filter by name",
-                        fontSize = 18.sp, color = Color.Black, fontWeight = FontWeight.SemiBold)
-                }
-            }
-            Spacer(modifier = Modifier.height(10.dp))
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)){
-                Box(
-                    modifier = Modifier
-                        .size(12.dp)
-                        .background(Color.Black, CircleShape)
-                )
-                TextButton(onClick = {
-                    viewModel.sortBoardsByTitleAsc()
-                }, modifier = Modifier
-                    .padding(horizontal = 16.dp))
-                {
-                    Text("Filter by name DESC",
-                        fontSize = 18.sp, color = Color.Black, fontWeight = FontWeight.SemiBold)
-                }
-            }
-        }
-    }
-}
 @Composable
 fun ExpandableFloatingActionButton(showButtons: Boolean, onToggle: (Boolean) -> Unit, navController: NavHostController) {
     Column(

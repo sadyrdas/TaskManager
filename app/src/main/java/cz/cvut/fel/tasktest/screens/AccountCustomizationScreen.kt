@@ -54,7 +54,7 @@ import cz.cvut.fel.tasktest.data.viewModels.UserViewModel
 
 @Composable
 fun AccountCustomizationScreen(navController: NavHostController, drawerState: DrawerState, viewModel: UserViewModel) {
-    val state by viewModel.userState.collectAsState()
+    val userState by viewModel.userState.collectAsState()
 
     LaunchedEffect(key1 = null) {
         viewModel.fetchUser()
@@ -89,11 +89,11 @@ fun AccountCustomizationScreen(navController: NavHostController, drawerState: Dr
                 .background(MaterialTheme.colorScheme.background),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            state?.let { userState ->
-                val imageUri = userState.background
-                val userName = userState.userName
+            userState?.let { user ->
+                val imageUri = user.background
+                val userName = user.userName
 
-                if (imageUri != null) {
+                if (imageUri.isNotBlank()) {
                     // Display user profile picture or default icon
                     Image(
                         modifier = Modifier.size(250.dp),
@@ -172,7 +172,7 @@ fun AccountCustomizationScreen(navController: NavHostController, drawerState: Dr
 
                 // Button to save changes
                 TextButton(
-                    onClick = {navController.navigate(MainRoute.Boards.name)},
+                    onClick = { viewModel.onEvent(UserEvent.SaveUser);navController.navigate(MainRoute.Boards.name) },
                     modifier = Modifier
                         .background(Color(0xFF59D47B), shape = CircleShape)
                         .padding(horizontal = 16.dp)
@@ -183,10 +183,8 @@ fun AccountCustomizationScreen(navController: NavHostController, drawerState: Dr
                         fontWeight = FontWeight.SemiBold
                     )
                 }
-            } ?: run {
-                // Handle case where user data is not available yet
-                CircularProgressIndicator(modifier = Modifier.size(50.dp))
             }
         }
     }
 }
+

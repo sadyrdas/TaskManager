@@ -186,7 +186,7 @@ fun MainNavigation(
 
             }
             composable(MainRoute.AllTasks.name) {
-                AllTasksScreen(drawerState, taskViewModel, viewModel ,navController)
+                AllTasksScreen(drawerState, taskViewModel,navController)
             }
             composable(route = "${MainRoute.CurrentBoard.name}/{boardId}") { backStackEntry ->
                 val boardId = backStackEntry.arguments?.getString("boardId")?.toLong()
