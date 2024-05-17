@@ -106,7 +106,7 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
     var selectedEndDate by remember { mutableStateOf<Date?>(null) }
     var showInvalidDateDialog by remember { mutableStateOf(false) }
 
-    var showConfirmDialogAboutDeleteBoard by remember { mutableStateOf(false) }
+    var showConfirmDialogAboutDeleteTask by remember { mutableStateOf(false) }
 
     val taskState by taskViewModel.taskState
 
@@ -348,20 +348,20 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
                 ) {
-                    if (showConfirmDialogAboutDeleteBoard){
+                    if (showConfirmDialogAboutDeleteTask){
                         AlertDialog(
                             onDismissRequest = {
                                 // Dismiss the dialog when the user taps outside or on the back button
-                                showConfirmDialogAboutDeleteBoard = false
+                                showConfirmDialogAboutDeleteTask = false
                             },
                             title = { Text("Confirmation") },
-                            text = { Text("Are you sure you want to delete this board?.") },
+                            text = { Text("Are you sure you want to delete this tag?.") },
                             confirmButton = {
                                 Button(
                                     onClick = {
-                                        showConfirmDialogAboutDeleteBoard = false
+                                        showConfirmDialogAboutDeleteTask = false
                                         taskViewModel.onEvent(TaskEvent.DeleteTask(taskId))
-                                        navController.navigate(MainRoute.Boards.name)
+                                        navController.popBackStack()
                                     }
                                 ) {
                                     Text("Confirm")
@@ -369,7 +369,7 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                             },
                             dismissButton = {
                                 Button(
-                                    onClick = { showConfirmDialogAboutDeleteBoard = false }
+                                    onClick = { showConfirmDialogAboutDeleteTask = false }
                                 ) {
                                     Text("Cancel")
                                 }
@@ -378,7 +378,7 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                     }
                     Button(
                         onClick = {
-                            showConfirmDialogAboutDeleteBoard = true},
+                            showConfirmDialogAboutDeleteTask = true},
                         modifier = Modifier
                             .padding(vertical = 8.dp)
                             .weight(1f)
