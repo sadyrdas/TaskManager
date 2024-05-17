@@ -49,10 +49,15 @@ class TaskViewModel(
 
 
 
+    private val _tagsForTaskMap = MutableStateFlow<Map<Long, List<Tag>>>(emptyMap())
+    val tagsForTaskMap: StateFlow<Map<Long, List<Tag>>> get() = _tagsForTaskMap
+
     fun fetchTagsForTask(taskId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             val tags = taskDAO.getTagsForTask(taskId)
-            _tagsForTask.value = tags
+            _tagsForTaskMap.update { currentMap ->
+                currentMap + (taskId to tags)
+            }
         }
     }
 

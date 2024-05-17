@@ -134,7 +134,7 @@ fun CurrentBoardScreen(navController: NavHostController, drawerState: DrawerStat
                                         .border(3.dp, Color.Black, ShapeDefaults.Large)
                                         .shadow(2.dp)
                                         .width(270.dp)
-                                        .height(120.dp)
+                                        .height(150.dp)
                                         .align(Alignment.CenterHorizontally)
                                 ) {
                                     TaskCard(task, navController, taskViewModel, task.id)
@@ -203,41 +203,43 @@ fun FloatingButton(navController: NavHostController, boardId: Long) {
 
 @Composable
 fun TaskCard(task: Task, navController: NavHostController, taskViewModel: TaskViewModel, taskId: Long) {
+    // Fetch tags for the specific task when the TaskCard is composed
     LaunchedEffect(taskId) {
         taskViewModel.fetchTagsForTask(taskId)
     }
 
-    // Observe tags for the task
-    val tagsForTask by taskViewModel.tagsForTask.collectAsState()
+    // Observe tags for the task from the map in TaskViewModel
+    val tagsForTask by taskViewModel.tagsForTaskMap.collectAsState()
+    val tags = tagsForTask[taskId] ?: emptyList()
+
     Column {
         Row(modifier = Modifier.padding(start = 16.dp, top = 8.dp)) {
-            tagsForTask.forEach { tag ->
+            tags.forEach { tag ->
                 Text(
                     tag.name,
                     modifier = Modifier
                         .padding(end = 8.dp) // Add padding between tags
                         .background(Color(android.graphics.Color.parseColor(tag.background)))
                 )
-                // You can customize the UI to display tags as you prefer
             }
         }
-        Row(modifier = Modifier.padding(top = 40.dp)) {
-            Text(text = task.title, modifier = Modifier
-                .weight(1f)
-                .padding(start = 8.dp),
-                fontSize = MaterialTheme.typography.headlineMedium.fontSize)
+        Row(modifier = Modifier.padding(top = 20.dp)) {
+            Text(
+                text = task.title,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp),
+                fontSize = MaterialTheme.typography.headlineMedium.fontSize
+            )
             IconButton(onClick = { navController.navigate("${MainRoute.CurrentTask.name}/${task.id}") }) {
-                Icon(imageVector =
-                Icons.Default.Create,
+                Icon(
+                    imageVector = Icons.Default.Create,
                     contentDescription = "Task Edit",
                     modifier = Modifier
                         .align(Alignment.CenterVertically)
                         .padding(end = 8.dp)
                 )
             }
-
         }
-
-
     }
 }
