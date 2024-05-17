@@ -21,4 +21,5 @@ sealed interface TaskEvent {
     data class SetPhoto(val photo: String, val id: Long) : TaskEvent
     data class updateDateStart(val dateStart: String, val id: Long) : TaskEvent
     data class updateDateEnd(val dateEnd: String, val id: Long) : TaskEvent
+    data class editTaskTitle(val newTitle: String, val taskId: Long): TaskEvent
 }

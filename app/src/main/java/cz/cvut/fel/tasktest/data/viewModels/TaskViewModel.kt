@@ -58,6 +58,10 @@ class TaskViewModel(
             _tagsForTaskMap.update { currentMap ->
                 currentMap + (taskId to tags)
             }
+            _tagsForTask.value = tags
+            launch(Dispatchers.Main) {
+                _state.update { it.copy(tags = tags) }
+            }
         }
     }
 
@@ -167,8 +171,8 @@ class TaskViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             // Insert the new tags for the task
             taskDAO.insertTagsForTask(taskId, tagIds)
-
-            // Refresh tasks after updating tags
+            _taskState.value = _taskState.value?.copy(tags = taskDAO.getTagsForTask(taskId))
+            fetchTagsForTask(taskId)
             fetchTasks()
         }
     }
@@ -257,6 +261,16 @@ class TaskViewModel(
             is TaskEvent.SetPhoto -> {
                 viewModelScope.launch(Dispatchers.IO) {
                     photoDAO.savePhotoToTask(event.id, event.photo)
+                    _taskState.value = _taskState.value?.copy(photo = event.photo )
+                    fetchPhotosForTask(event.id)
+                    fetchTasks()
+                }
+            }
+            is TaskEvent.editTaskTitle -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    taskDAO.updateTaskTitle(event.taskId, event.newTitle)
+                    _taskState.value = _taskState.value?.copy(title = event.newTitle)
+                    fetchTasks()
                 }
             }
         }

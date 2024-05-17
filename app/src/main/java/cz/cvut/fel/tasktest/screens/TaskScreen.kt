@@ -25,6 +25,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.ArrowBack
@@ -116,17 +117,15 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
     val dataStart:String = taskState?.dateStart ?: "Starting.."
     val dataEnd:String = taskState?.dateEnd ?: "Ending"
 
+    val tagsForTask by taskViewModel.tagsForTask.collectAsState()
+
     LaunchedEffect(taskId) {
         taskViewModel.fetchTagsForTask(taskId)
     }
-
+    val photosForTask by taskViewModel.photosForTask.collectAsState()
     LaunchedEffect(taskId){
         taskViewModel.getPhotos(taskId)
     }
-
-    // Observe tags for the task
-    val tagsForTask by taskViewModel.tagsForTask.collectAsState()
-    val photosForTask by taskViewModel.photosForTask.collectAsState()
 
 
     LaunchedEffect(taskId) {
@@ -144,12 +143,11 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
         taskViewModel.fetchDates(taskId)
     }
 
-//    LaunchedEffect(selectedStartDate, selectedEndDate) {
-//        if (selectedStartDate != null && selectedEndDate != null && selectedStartDate!!.after(selectedEndDate)) {
-//            // Показываем диалоговое окно с сообщением об ошибке
-//            showInvalidDateDialog = true
-//        }
-//    }
+    var isEditTitleDialogOpen by remember { mutableStateOf(false) }
+
+    fun toggleEditTitleDialog() {
+        isEditTitleDialogOpen = !isEditTitleDialogOpen
+    }
 
     // State to manage dialog visibility
     var isDialogOpen by remember { mutableStateOf(false) }
@@ -281,6 +279,8 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
             }
         }
 
+
+
     ) { paddingValues ->
         if (showInvalidDateDialog) {
             AlertDialog(
@@ -296,6 +296,17 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                 }
             )
         }
+        if (isEditTitleDialogOpen == true) {
+            EditTitleDialog(
+                isOpen = isEditTitleDialogOpen,
+                currentTitle = title ?: "",
+                onConfirm = { newTitle ->
+                    taskViewModel.onEvent(TaskEvent.editTaskTitle(newTitle, taskId))
+                },
+                onDismiss = { toggleEditTitleDialog() }
+            )
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -381,14 +392,14 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Button(
-                        onClick = {
-                            imagePickerLauncher.launch("image/*") },
+                        onClick = { toggleEditTitleDialog()
+                             },
                         modifier = Modifier
                             .padding(vertical = 8.dp)
                             .weight(1f)
                             .width(150.dp)
                     ) {
-                        Text("Add cover")
+                        Text("Edit title")
                     }
                 }
             }
@@ -606,7 +617,8 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                                 modifier = Modifier.padding(
                                     start = 16.dp,
                                     bottom = 16.dp
-                                )
+                                ),
+                                color = Color.Black
                             )
 
                             Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
@@ -633,6 +645,7 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                                                 permissionLauncher.launch(Manifest.permission.CAMERA)
                                             } else {
                                                 showCamera = true
+                                                isDrawerOpen = false
                                             }
                                         }
                                     , color = Color.Black
@@ -651,10 +664,12 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                                         }
                                 }) {
                                 Text(
-                                    text = "Add audio",
+                                    text = "Add cover",
                                     style = MaterialTheme.typography.bodyLarge,
                                     modifier = Modifier
                                         .padding(16.dp)
+                                        .clickable { imagePickerLauncher.launch("image/*") },
+                                    color = Color.Black
                                 )
                             }
                             Row(modifier = Modifier
@@ -693,6 +708,45 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
     }
 }
 
+@Composable
+fun EditTitleDialog(
+    isOpen: Boolean,
+    currentTitle: String,
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var newTitle by remember { mutableStateOf(currentTitle) } // Переменная для нового названия
+
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        title = { Text("Edit Title") },
+        text = {
+            // Текстовое поле для ввода нового названия
+            OutlinedTextField(
+                value = newTitle,
+                onValueChange = { newTitle = it },
+                label = { Text("New Title") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        confirmButton = {
+            Button(onClick = {
+                // Вызываем функцию onConfirm с новым названием
+                onConfirm(newTitle)
+                onDismiss() // Закрываем диалог
+            }) {
+                Text("Confirm")
+            }
+        },
+        dismissButton = {
+            Button(onClick = { onDismiss() }) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
 fun fromStringToDate(dataStart: String): Date? {
     val format = SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy")
     return try {
@@ -719,6 +773,9 @@ fun TagsDialog(
         onDismissRequest = onDismiss,
         title = { Text("Select Tags") },
         text = {
+            LaunchedEffect(key1 = null) {
+                tagViewModel.fetchTags()
+            }
             LazyColumn {
                 items(tags) { tag ->
                     val isSelected = selectedTagIds.contains(tag.id)

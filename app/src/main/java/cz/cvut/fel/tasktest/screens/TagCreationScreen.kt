@@ -181,7 +181,9 @@ fun TagCreationScreen(navController: NavHostController, drawerState: DrawerState
                 state.tags.forEach { tag ->
                     Row(verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
-                            .padding(horizontal = 16.dp, vertical = 8.dp)) {
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                    {
                         Text(
                             text = tag.name,
                             fontSize = MaterialTheme.typography.headlineSmall.fontSize,
@@ -191,7 +193,7 @@ fun TagCreationScreen(navController: NavHostController, drawerState: DrawerState
                                 .border(
                                     1.dp,
                                     MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.shapes.extraLarge
+                                    MaterialTheme.shapes.extraLarge,
                                 )
                                 .height(40.dp)
                                 .width(200.dp)

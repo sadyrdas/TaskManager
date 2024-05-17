@@ -21,6 +21,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Menu
@@ -87,7 +88,8 @@ fun CurrentBoardScreen(navController: NavHostController, drawerState: DrawerStat
                 drawerState = drawerState,
                 title = titleOfCurrentBoard,
                 backgroundColor = MaterialTheme.colorScheme.primaryContainer,
-                imageVector = Icons.Default.Menu,
+                imageVector = Icons.Default.ArrowBack,
+                navigationAction = {navController.popBackStack()}
             )
         },
         floatingActionButton = {

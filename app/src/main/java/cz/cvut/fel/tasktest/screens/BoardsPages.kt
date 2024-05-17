@@ -82,6 +82,7 @@ fun ArticlesScreen(navController: NavHostController, viewModel: BoardViewModel, 
                 title = "Boards",
                 imageVector = Icons.Filled.Menu,
                 backgroundColor = MaterialTheme.colorScheme.primary
+
             )
         },
         floatingActionButton = {

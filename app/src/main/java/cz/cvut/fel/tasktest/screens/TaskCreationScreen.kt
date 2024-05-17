@@ -92,6 +92,7 @@ fun TaskCreationScreen(
     var selectedEndDate by remember { mutableStateOf<Date?>(futureDate) }
 
     var showInvalidDateDialog by remember { mutableStateOf(false) }
+    var showInvalidTitleDialog by remember { mutableStateOf(false) }
 
     val focusRequesterName = remember { FocusRequester() }
     val focusRequesterDescription = remember { FocusRequester() }
@@ -105,7 +106,8 @@ fun TaskCreationScreen(
                 drawerState = drawerState,
                 title = "Create Task",
                 backgroundColor = MaterialTheme.colorScheme.primaryContainer,
-                imageVector = Icons.Default.Close
+                imageVector = Icons.Default.Close,
+                navigationAction = { navController.popBackStack() }
             )
         }
     ) { paddingValues ->
@@ -117,6 +119,20 @@ fun TaskCreationScreen(
                 confirmButton = {
                     Button(
                         onClick = { showInvalidDateDialog = false }
+                    ) {
+                        Text("OK")
+                    }
+                }
+            )
+        }
+        if (showInvalidTitleDialog) {
+            AlertDialog(
+                onDismissRequest = { showInvalidTitleDialog = false },
+                title = { Text("Error") },
+                text = { Text("Task name cannot be empty.") },
+                confirmButton = {
+                    Button(
+                        onClick = { showInvalidTitleDialog = false }
                     ) {
                         Text("OK")
                     }
@@ -340,11 +356,14 @@ fun TaskCreationScreen(
                     taskViewModel.onEvent(TaskEvent.SetTaskDateEnd(selectedEndDate.toString()))
                     if (selectedSectionId.value == null) {
                         showSectionNotSelectedDialog = true
-                    } else if (selectedEndDate != null && selectedStartDate != null && selectedEndDate!!.after(selectedStartDate)) {
+                    } else if(taskState.title == null || taskState.title == "") {
+                        showInvalidTitleDialog = true
+                    }
+                    else if (selectedEndDate != null && selectedStartDate != null && selectedEndDate!!.after(selectedStartDate)) {
                         // If the end date is after the start date, save the task
                         taskViewModel.onEvent(TaskEvent.SaveTask)
-                        navController.navigate("${MainRoute.CurrentBoard.name}/${selectedBoardId.value}")
-                    } else {
+                        navController.navigate("${MainRoute.CurrentBoard.name}/${boardId}")
+                    }else{
                         // Show error dialog if the end date is before the start date
                         showInvalidDateDialog = true
                     }
