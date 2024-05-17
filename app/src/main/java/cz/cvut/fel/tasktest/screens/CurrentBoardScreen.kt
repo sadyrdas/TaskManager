@@ -17,10 +17,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Create
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.FloatingActionButton
@@ -34,6 +37,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -44,7 +50,9 @@ import androidx.navigation.NavHostController
 import cz.cvut.fel.tasktest.CustomAppBar
 import cz.cvut.fel.tasktest.MainRoute
 import cz.cvut.fel.tasktest.R
+import cz.cvut.fel.tasktest.data.Section
 import cz.cvut.fel.tasktest.data.Task
+import cz.cvut.fel.tasktest.data.events.SectionEvent
 import cz.cvut.fel.tasktest.data.viewModels.BoardViewModel
 import cz.cvut.fel.tasktest.data.viewModels.SectionViewModel
 import cz.cvut.fel.tasktest.data.viewModels.TaskViewModel
@@ -58,6 +66,7 @@ fun CurrentBoardScreen(navController: NavHostController, drawerState: DrawerStat
 
     val sectionState by sectionViewModel.state.collectAsState()
 
+    var focusSectionId:Long? = null
 
 
     LaunchedEffect(boardId) {
@@ -72,6 +81,11 @@ fun CurrentBoardScreen(navController: NavHostController, drawerState: DrawerStat
         taskViewModel.fetchTasks()
     }
 
+    var isEditTitleDialogOpen by remember { mutableStateOf(false) }
+    fun toggleEditSectionDialog(sectionId: Long?=null) {
+        isEditTitleDialogOpen = !isEditTitleDialogOpen
+        focusSectionId = sectionId
+    }
 
     val titleOfCurrentBoard = boardState?.title ?: ""
     val sections = sectionState.sections
@@ -91,6 +105,17 @@ fun CurrentBoardScreen(navController: NavHostController, drawerState: DrawerStat
             FloatingButton(navController, boardId)
         }
     ) { paddingValues ->
+        if (isEditTitleDialogOpen == true) {
+            EditSectionDialog(
+//                isOpen = isEditTitleDialogOpen,
+                currentTitle = sectionState.title ?: "",
+                onConfirm = { newTitle ->
+                    sectionViewModel.onEvent(SectionEvent.EditSectionTitle(newTitle, boardId, focusSectionId!!))
+                },
+//                section = sections.find { it.id == currentSectionId }!!,
+                onDismiss = { toggleEditSectionDialog() }
+            )
+        }
         Row(
             modifier = Modifier
                 .padding(paddingValues)
@@ -117,11 +142,24 @@ fun CurrentBoardScreen(navController: NavHostController, drawerState: DrawerStat
                             .width(300.dp)
 
                     ) {
-                        Text(
-                            text = section.title,
-                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                            modifier = Modifier.padding(start = 8.dp)
-                        )
+                        Row {
+                            Text(
+                                text = section.title,
+                                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                            IconButton(onClick = { toggleEditSectionDialog(section.id) }) {
+                                Icon(
+                                    imageVector = Icons.Default.Create,
+                                    contentDescription = "Section Edit",
+                                    modifier = Modifier
+                                        .align(Alignment.CenterVertically)
+                                        .padding(end = 8.dp)
+                                )
+                            }
+                        }
+
                         Divider(color = Color.Gray, thickness = 2.dp)
                         Column(Modifier.weight(1f)) {
                             tasksInSection.forEach { task ->
@@ -162,8 +200,11 @@ fun CurrentBoardScreen(navController: NavHostController, drawerState: DrawerStat
                                 modifier = Modifier
                                     .align(Alignment.CenterVertically)
                                     .padding(end = 8.dp)
-                                    .clickable { navController.navigate(route =
-                                    "${MainRoute.TaskCreation.name}/$boardId")
+                                    .clickable {
+                                        navController.navigate(
+                                            route =
+                                            "${MainRoute.TaskCreation.name}/$boardId"
+                                        )
                                     }
                             )
                             Text(
@@ -238,5 +279,43 @@ fun TaskCard(task: Task, navController: NavHostController, taskViewModel: TaskVi
             }
         }
     }
+}
+
+@Composable
+fun EditSectionDialog(
+    currentTitle: String,
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var newTitle by remember { mutableStateOf(currentTitle) } // Переменная для нового названия
+
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        title = { Text("Edit Title of Section") },
+        text = {
+            // Текстовое поле для ввода нового названия
+            OutlinedTextField(
+                value = newTitle,
+                onValueChange = { newTitle = it },
+                label = { Text("New Title") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        confirmButton = {
+            Button(onClick = {
+                // Вызываем функцию onConfirm с новым названием
+                onConfirm(newTitle)
+                onDismiss() // Закрываем диалог
+            }) {
+                Text("Confirm")
+            }
+        },
+        dismissButton = {
+            Button(onClick = { onDismiss() }) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 

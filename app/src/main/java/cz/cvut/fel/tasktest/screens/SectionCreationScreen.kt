@@ -9,6 +9,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
@@ -46,6 +47,7 @@ fun SectionCreationScreen(navController: NavHostController,drawerState: DrawerSt
         boardState = board
     }
 
+    var showInvalidTitleDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -56,6 +58,20 @@ fun SectionCreationScreen(navController: NavHostController,drawerState: DrawerSt
                 navigationAction = { navController.navigate("${MainRoute.CurrentBoard.name}/${boardId}") })
         }
     ) { paddingValues ->
+        if (showInvalidTitleDialog) {
+            AlertDialog(
+                onDismissRequest = { showInvalidTitleDialog = false },
+                title = { androidx.compose.material3.Text("Error") },
+                text = { androidx.compose.material3.Text("Section name cannot be empty.") },
+                confirmButton = {
+                    Button(
+                        onClick = { showInvalidTitleDialog = false }
+                    ) {
+                        androidx.compose.material3.Text("OK")
+                    }
+                }
+            )
+        }
         Column(
             modifier = Modifier
                 .padding(paddingValues).fillMaxWidth(),
@@ -77,7 +93,13 @@ fun SectionCreationScreen(navController: NavHostController,drawerState: DrawerSt
                     .border(1.dp, MaterialTheme.colorScheme.primaryContainer, MaterialTheme.shapes.small)
             )
             Button(
-                onClick = {viewSectionModel.onEvent(SectionEvent.SaveSection)},
+                onClick = {
+                    if (sectionState.title.isEmpty()) {
+                        showInvalidTitleDialog = true
+                    } else {
+                        viewSectionModel.onEvent(SectionEvent.SaveSection)
+                        navController.navigate("${MainRoute.CurrentBoard.name}/${boardId}")
+                    }},
                 modifier = Modifier
                     .padding(top = 560.dp)
             ) {
