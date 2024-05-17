@@ -8,10 +8,12 @@ import android.os.Build
 
 import cz.cvut.fel.tasktest.notification.TaskifyNotificationService
 import android.Manifest
+import android.content.Context
 
 import android.content.pm.PackageManager
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import cz.cvut.fel.tasktest.notification.isForegroundServiceAllowed
 
 class TaskifyApplication : Application() {
     @RequiresApi(Build.VERSION_CODES.P)
@@ -22,9 +24,12 @@ class TaskifyApplication : Application() {
         startNotificationService()
     }
 
+    @RequiresApi(Build.VERSION_CODES.P)
     private fun startNotificationService() {
-        val serviceIntent = Intent(applicationContext, TaskifyNotificationService::class.java)
-        ContextCompat.startForegroundService(applicationContext, serviceIntent)
+        if (isForegroundServiceAllowed(this as Context)) {
+            val serviceIntent = Intent(applicationContext, TaskifyNotificationService::class.java)
+            ContextCompat.startForegroundService(applicationContext, serviceIntent)
+        }
     }
 
 }

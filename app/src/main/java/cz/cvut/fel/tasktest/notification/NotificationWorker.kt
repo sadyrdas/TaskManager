@@ -6,7 +6,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -18,17 +17,13 @@ import cz.cvut.fel.tasktest.data.repository.TaskNotificationDAO
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import okhttp3.internal.notify
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Locale
-import java.util.TimeZone
 
 class NotificationWorker : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         if (context == null){return}
         CoroutineScope(Dispatchers.IO).launch {
-//            val db = TaskifyDatabase.getDatabase(context.applicationContext)
             val db = TaskifyDatabase.getDatabase(context)
 
             val notificationDAO = db.taskNotificationDAO()

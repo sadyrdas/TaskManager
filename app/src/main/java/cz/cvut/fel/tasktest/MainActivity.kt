@@ -80,7 +80,6 @@ class MainActivity : ComponentActivity() {
     )
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContent {
             JetpackComposeDrawerNavigationTheme {
                 // A surface container using the 'background' color from the theme
@@ -94,22 +93,5 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-//    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-//    private fun checkAndRequestPermissions() {
-//        val permissions = arrayOf(
-//            Manifest.permission.POST_NOTIFICATIONS,
-//            Manifest.permission.FOREGROUND_SERVICE)
-//
-//        val sharedPreferences = getSharedPreferences("permissions_prefs", Context.MODE_PRIVATE)
-//        val permissionRequestCount = sharedPreferences.getInt("permission_request_count", 0)
-//        if (permissionRequestCount < 2 && permissions.any {
-//            ContextCompat.checkSelfPermission(this, it) != PERMISSION_GRANTED
-//        }) {
-//            // Launch PermissionActivity if permissions are not granted
-//            startActivity(Intent(this, PermissionActivity::class.java))
-//            // Increment and save the request count
-//            sharedPreferences.edit().putInt("permission_request_count", permissionRequestCount + 1).apply()
-//        }
-//    }
 }
 

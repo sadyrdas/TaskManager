@@ -1,5 +1,12 @@
 package cz.cvut.fel.tasktest
 
+import android.Manifest
+import android.os.Build
+import android.util.Log
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -76,7 +83,24 @@ private val menus = arrayOf(
     DrawerMenu(R.drawable.statisticsicon, "Statistics", MainRoute.Statistics.name),
     DrawerMenu(R.drawable.tasklisticon, "All Tasks", MainRoute.AllTasks.name)
 )
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
+fun requestNotificationPermissions(launcher: ManagedActivityResultLauncher<Array<String>, Map<String, @JvmSuppressWildcards Boolean>>) {
+    val permissions = mutableListOf(
+        Manifest.permission.FOREGROUND_SERVICE,
+        Manifest.permission.POST_NOTIFICATIONS,
+        Manifest.permission.RECEIVE_BOOT_COMPLETED
+    )
 
+    // Exclude FOREGROUND_SERVICE_DATA_SYNC for older devices
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        permissions.add(Manifest.permission.FOREGROUND_SERVICE_DATA_SYNC)
+    }
+
+    val permissionsArray = permissions.toTypedArray()
+
+    Log.d("TAG", "requestNotificationPermissions: Requesting permissions")
+    launcher.launch(permissionsArray)
+}
 @Composable
 private fun DrawerContent(
     menus: Array<DrawerMenu>,
@@ -85,8 +109,19 @@ private fun DrawerContent(
 ) {
     val state by viewModel.userState.collectAsState()
 
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        permissions.forEach { perm ->
+            Log.d("PERM", "ArticlesScreen: ${perm.key} - ${perm.value}")
+        }
+    }
+
     LaunchedEffect(key1 = null) {
         viewModel.fetchUser()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestNotificationPermissions(launcher)
+        }
     }
 
     Column(

@@ -1,12 +1,13 @@
 package cz.cvut.fel.tasktest.screens
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -62,6 +63,7 @@ import cz.cvut.fel.tasktest.data.events.BoardEvent
 import cz.cvut.fel.tasktest.data.viewModels.BoardViewModel
 
 
+@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @Composable
 fun ArticlesScreen(navController: NavHostController, viewModel: BoardViewModel, drawerState: DrawerState){
     val state by viewModel.state.collectAsState()
@@ -69,7 +71,7 @@ fun ArticlesScreen(navController: NavHostController, viewModel: BoardViewModel, 
     var showConfirmDialogAboutDeleteBoard by remember { mutableStateOf(false) }
     val (drawerStateForFilter, setDrawerStateForFilter) = remember { mutableStateOf(false) }
 
-    requestNotificationPermissions()
+
 
     LaunchedEffect(key1 = true) { // key1 = true ensures this only runs once when the composable enters the composition
         viewModel.fetchBoards() // Call fetch boards if not automatically handled in ViewModel init
@@ -121,7 +123,7 @@ fun ArticlesScreen(navController: NavHostController, viewModel: BoardViewModel, 
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp) // Отступы !!!
-                        .clickable{ navController.navigate("${MainRoute.CurrentBoard.name}/${board.id}") }
+                        .clickable { navController.navigate("${MainRoute.CurrentBoard.name}/${board.id}") }
                 ) {
                     AsyncImage(
                         model = board.background,
@@ -188,9 +190,7 @@ fun ArticlesScreen(navController: NavHostController, viewModel: BoardViewModel, 
     }
 }
 
-fun requestNotificationPermissions() {
 
-}
 
 
 @Composable

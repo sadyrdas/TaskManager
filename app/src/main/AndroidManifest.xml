@@ -9,10 +9,11 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA"/>
 
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+<!--    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />-->
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
 
     <application
     android:name=".TaskifyApplication"
@@ -40,7 +41,8 @@
     <service android:name=".notification.TaskifyNotificationService"
         android:foregroundServiceType="dataSync"
         android:exported="false"
-        tools:ignore="ForegroundServicePermission" />
+        />
+
     <receiver android:name=".notification.NotificationWorker" />
 
         <receiver
