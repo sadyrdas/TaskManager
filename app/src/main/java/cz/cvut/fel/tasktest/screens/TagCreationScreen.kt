@@ -54,6 +54,7 @@ import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 import cz.cvut.fel.tasktest.CustomAppBar
 import cz.cvut.fel.tasktest.MainRoute
+import cz.cvut.fel.tasktest.data.Tag
 import cz.cvut.fel.tasktest.data.events.TagEvent
 import cz.cvut.fel.tasktest.data.viewModels.TagViewModel
 
@@ -64,6 +65,8 @@ fun TagCreationScreen(navController: NavHostController, drawerState: DrawerState
     val state by viewModel.state.collectAsState()
     val backgroundColor = remember { mutableStateOf(Color.White) }
     var showConfirmDialogAboutDeleteBoard by remember { mutableStateOf(false) }
+    var tagToBeDeleted by remember { mutableStateOf<Tag?>(null) }
+
     if (state.background.isNotBlank()) {
         try {
             backgroundColor.value = Color(android.graphics.Color.parseColor(state.background))
@@ -194,7 +197,7 @@ fun TagCreationScreen(navController: NavHostController, drawerState: DrawerState
                                 .width(200.dp)
                                 .background(Color(android.graphics.Color.parseColor(tag.background)))
                         )
-                        IconButton(onClick = { showConfirmDialogAboutDeleteBoard = true },
+                        IconButton(onClick = { showConfirmDialogAboutDeleteBoard = true; tagToBeDeleted = tag },
                             modifier = Modifier
                                 .padding(start = 8.dp)
                                 .size(30.dp)){
@@ -202,21 +205,24 @@ fun TagCreationScreen(navController: NavHostController, drawerState: DrawerState
                                 contentDescription = "Delete Tag Icon",
                             )
                         }
-            }
+                    }
 
-                    if (showConfirmDialogAboutDeleteBoard){
+                    if (showConfirmDialogAboutDeleteBoard && tagToBeDeleted != null) {
                         AlertDialog(
                             onDismissRequest = {
-                                // Dismiss the dialog when the user taps outside or on the back button
                                 showConfirmDialogAboutDeleteBoard = false
+                                tagToBeDeleted = null
                             },
                             title = { Text("Confirmation") },
-                            text = { Text("Are you sure you want to delete this tag?.") },
+                            text = { Text("Are you sure you want to delete this tag?") },
                             confirmButton = {
                                 Button(
                                     onClick = {
-                                        showConfirmDialogAboutDeleteBoard = false
-                                        viewModel.onEvent(TagEvent.DeleteTag(tag))// Launch image picker after confirmation
+                                        tagToBeDeleted?.let { tag ->
+                                            showConfirmDialogAboutDeleteBoard = false
+                                            viewModel.onEvent(TagEvent.DeleteTag(tag))
+                                            tagToBeDeleted = null
+                                        }
                                     }
                                 ) {
                                     Text("Confirm")
@@ -224,19 +230,19 @@ fun TagCreationScreen(navController: NavHostController, drawerState: DrawerState
                             },
                             dismissButton = {
                                 Button(
-                                    onClick = { showConfirmDialogAboutDeleteBoard = false }
+                                    onClick = {
+                                        showConfirmDialogAboutDeleteBoard = false
+                                        tagToBeDeleted = null
+                                    }
                                 ) {
                                     Text("Cancel")
                                 }
                             }
                         )
                     }
-
                 }
             }
-
         }
-
     }
 }
 
