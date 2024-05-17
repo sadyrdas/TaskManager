@@ -3,7 +3,6 @@ package cz.cvut.fel.tasktest.screens
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,7 +43,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -53,7 +51,6 @@ import com.github.skydoves.colorpicker.compose.AlphaTile
 import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 import cz.cvut.fel.tasktest.CustomAppBar
-import cz.cvut.fel.tasktest.MainRoute
 import cz.cvut.fel.tasktest.data.Tag
 import cz.cvut.fel.tasktest.data.events.TagEvent
 import cz.cvut.fel.tasktest.data.viewModels.TagViewModel
@@ -61,7 +58,6 @@ import cz.cvut.fel.tasktest.data.viewModels.TagViewModel
 
 @Composable
 fun TagCreationScreen(navController: NavHostController, drawerState: DrawerState, viewModel: TagViewModel){
-    val focusManager = LocalFocusManager.current
     val state by viewModel.state.collectAsState()
     val backgroundColor = remember { mutableStateOf(Color.White) }
     var showConfirmDialogAboutDeleteBoard by remember { mutableStateOf(false) }
@@ -250,7 +246,6 @@ fun TagCreationScreen(navController: NavHostController, drawerState: DrawerState
 
 @Composable
 fun ColorPicker(viewModel: TagViewModel){
-    val state by viewModel.state.collectAsState()
     val controller = rememberColorPickerController()
     Column (
         modifier = Modifier

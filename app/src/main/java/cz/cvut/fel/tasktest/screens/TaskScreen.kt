@@ -24,7 +24,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
@@ -58,25 +57,22 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import cz.cvut.fel.tasktest.CustomAppBar
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
+import cz.cvut.fel.tasktest.CustomAppBar
 import cz.cvut.fel.tasktest.MainRoute
 import cz.cvut.fel.tasktest.R
-import cz.cvut.fel.tasktest.data.Tag
-import cz.cvut.fel.tasktest.data.events.BoardEvent
 import cz.cvut.fel.tasktest.data.events.TaskEvent
 import cz.cvut.fel.tasktest.data.viewModels.CameraView
 import cz.cvut.fel.tasktest.data.viewModels.TagViewModel
@@ -90,7 +86,7 @@ import java.util.Locale
 import java.util.concurrent.Executors
 
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewModel: TagViewModel, navController: NavController, taskId:Long) {
     var isEditingDescription by remember { mutableStateOf(false) }
@@ -314,7 +310,7 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                 .verticalScroll(rememberScrollState(), reverseScrolling = true)
         ) {
             val imageUri = taskState?.cover
-            Box() {
+            Box {
                 Image(
                     painter = rememberAsyncImagePainter(imageUri),
                     contentDescription = "Selected Background",
@@ -591,7 +587,7 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
             }
 
 
-            photosForTask.forEach(){photos ->
+            photosForTask.forEach{photos ->
                 Image(
                     painter = rememberAsyncImagePainter(photos.photo),
                     contentDescription = "Selected Image",
@@ -610,7 +606,7 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                     containerColor = Primary,
                     modifier = Modifier.fillMaxSize(),
                     content = {
-                        Column() {
+                        Column {
                             Text(
                                 text = "Add attachments",
                                 style = MaterialTheme.typography.headlineSmall,

@@ -17,7 +17,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.DrawerState
-import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -34,8 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -51,10 +48,7 @@ import cz.cvut.fel.tasktest.data.viewModels.TaskViewModel
 import cz.cvut.fel.tasktest.ui.theme.Purple80
 import cz.cvut.fel.tasktest.ui.theme.PurpleGrey80
 import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.Period
 import java.util.Calendar
-import java.util.TimeZone
 
 const val FNSHD_STRING = "VERYUNLIKELYTOCALLTAGTHATWAYSOIT'SOKTOKEEPFINISHEDCOUNTINHERE"
 
@@ -185,7 +179,7 @@ fun TagStatisticsPage(
         topBar = {
             CustomAppBar(
                 drawerState = drawerState,
-                title = "Boards",
+                title = "Statistics",
                 imageVector = Icons.Filled.Menu,
                 backgroundColor = MaterialTheme.colorScheme.primary// Здесь указываем цвет
             )
@@ -286,11 +280,3 @@ fun SelectorRow(paddingValues: PaddingValues, onOptionSelected: (String) -> Unit
         }
     }
 }
-//@Preview
-//@Composable
-////fun prewiv(){
-////    val tagMap = mutableMapOf<String, Int>()
-////    val drawerState = DrawerState(DrawerValue.Closed)
-////
-////    TagStatisticsPage(tagMap, drawerState, (){inpt->"A"}, )
-////}

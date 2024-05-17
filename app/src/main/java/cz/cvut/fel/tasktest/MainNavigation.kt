@@ -39,7 +39,6 @@ import cz.cvut.fel.tasktest.data.viewModels.SectionViewModel
 import cz.cvut.fel.tasktest.data.viewModels.TagViewModel
 import cz.cvut.fel.tasktest.data.viewModels.TaskViewModel
 import cz.cvut.fel.tasktest.data.viewModels.UserViewModel
-import cz.cvut.fel.tasktest.screens.AboutScreen
 import cz.cvut.fel.tasktest.screens.AccountCustomizationScreen
 import cz.cvut.fel.tasktest.screens.AllTasksScreen
 import cz.cvut.fel.tasktest.screens.ArticlesScreen
@@ -56,7 +55,7 @@ import kotlinx.coroutines.launch
 
 enum class MainRoute(value: String) {
     Boards("boards"),
-        Statistics("statistics"),
+    Statistics("statistics"),
     Settings("settings"),
     AccountCustomization("accountCustomization"),
     BoardCreation("boardCreation"),
@@ -98,7 +97,7 @@ private fun DrawerContent(
                 .height(200.dp),
             contentAlignment = Alignment.Center
         ) {
-            if (state?.background != null) {
+            if (state?.background != "defaultbackground") {
                 Image(
                     modifier = Modifier.size(150.dp),
                     painter = rememberAsyncImagePainter(state!!.background),
@@ -106,7 +105,6 @@ private fun DrawerContent(
                     contentDescription = null
                 )
             } else {
-                // Display default icon
                 Icon(
                     imageVector = Icons.Filled.AccountCircle,
                     contentDescription = "User profile picture",
@@ -143,8 +141,6 @@ fun MainNavigation(
     navController: NavHostController = rememberNavController(),
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
     drawerState: DrawerState = rememberDrawerState(initialValue = DrawerValue.Closed),
-    boardId:Long = viewModel.state.value.id,
-    taskId:Long = taskViewModel.state.value.id
 ) {
 
     ModalNavigationDrawer(
@@ -191,7 +187,6 @@ fun MainNavigation(
             composable(route = "${MainRoute.CurrentBoard.name}/{boardId}") { backStackEntry ->
                 val boardId = backStackEntry.arguments?.getString("boardId")?.toLong()
                 boardId?.let {
-                    // Создайте экран для отображения определенного борда с использованием boardId
                     CurrentBoardScreen(navController, drawerState, viewModel, sectionViewModel, it, taskViewModel)
                 }
             }

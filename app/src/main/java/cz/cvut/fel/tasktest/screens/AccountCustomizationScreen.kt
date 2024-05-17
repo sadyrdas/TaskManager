@@ -19,15 +19,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -40,7 +36,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -93,8 +88,7 @@ fun AccountCustomizationScreen(navController: NavHostController, drawerState: Dr
                 val imageUri = user.background
                 val userName = user.userName
 
-                if (imageUri.isNotBlank()) {
-                    // Display user profile picture or default icon
+                if (imageUri != "defaultbackground") {
                     Image(
                         modifier = Modifier.size(250.dp),
                         painter = rememberAsyncImagePainter(imageUri),
@@ -102,7 +96,6 @@ fun AccountCustomizationScreen(navController: NavHostController, drawerState: Dr
                         contentDescription = null
                     )
                 } else {
-                    // Display default icon
                     Icon(
                         imageVector = Icons.Default.AccountCircle,
                         contentDescription = "User profile picture",

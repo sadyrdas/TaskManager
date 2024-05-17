@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,16 +15,12 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Create
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.FloatingActionButton
@@ -64,7 +59,7 @@ fun CurrentBoardScreen(navController: NavHostController, drawerState: DrawerStat
     val sectionState by sectionViewModel.state.collectAsState()
 
 
-    // Fetch the board state when the screen is first composed
+
     LaunchedEffect(boardId) {
         boardViewModel.getBoardState(boardId)
     }
@@ -89,7 +84,7 @@ fun CurrentBoardScreen(navController: NavHostController, drawerState: DrawerStat
                 title = titleOfCurrentBoard,
                 backgroundColor = MaterialTheme.colorScheme.primaryContainer,
                 imageVector = Icons.Default.ArrowBack,
-                navigationAction = {navController.popBackStack()}
+                navigationAction = {navController.navigate(MainRoute.Boards.name)}
             )
         },
         floatingActionButton = {
@@ -119,7 +114,7 @@ fun CurrentBoardScreen(navController: NavHostController, drawerState: DrawerStat
                             .padding(horizontal = 16.dp, vertical = 8.dp)
                             .verticalScroll(rememberScrollState())
                             .heightIn(minHeight)
-                            .width(300.dp)// Minimum height based on task count
+                            .width(300.dp)
 
                     ) {
                         Text(
@@ -205,7 +200,6 @@ fun FloatingButton(navController: NavHostController, boardId: Long) {
 
 @Composable
 fun TaskCard(task: Task, navController: NavHostController, taskViewModel: TaskViewModel, taskId: Long) {
-    // Fetch tags for the specific task when the TaskCard is composed
     LaunchedEffect(taskId) {
         taskViewModel.fetchTagsForTask(taskId)
     }
@@ -245,3 +239,4 @@ fun TaskCard(task: Task, navController: NavHostController, taskViewModel: TaskVi
         }
     }
 }
+
