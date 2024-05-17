@@ -126,7 +126,7 @@ fun populateTagMap(
 }
 
 fun filterTasks(tasks: List<Task>, selectedOption: String): List<Task> {
-    val currentTimeMillis = Calendar.getInstance().timeInMillis
+    val currentTime = Calendar.getInstance()
     val calendar = Calendar.getInstance()
 
     // Calculate cutoff time based on selected option
@@ -148,8 +148,7 @@ fun filterTasks(tasks: List<Task>, selectedOption: String): List<Task> {
             val format = SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy")
             val date = format.parse(startDate)
 
-
-            (date?.time ?: 0) > System.currentTimeMillis() - timeInMillis
+            (date?.time ?: 0) > timeInMillis
         }
     }
 
@@ -189,7 +188,7 @@ fun TagStatisticsPage(
         Column {
             SelectorRow(it, onOptionSelected, selectedOption)
             Box(
-                modifier = Modifier.background(Color.White, RoundedCornerShape(32))
+//                modifier = Modifier.background(Color.Transparent, RoundedCornerShape(32))
             ) {
                 // The LazyColumn will be our table. Notice the use of the weights below
                 LazyColumn(
