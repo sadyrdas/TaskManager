@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
+import java.util.Date
 import java.util.UUID
 
 class TaskViewModel(
@@ -45,6 +46,8 @@ class TaskViewModel(
     val tagsForTask: StateFlow<List<Tag>> = _tagsForTask.asStateFlow()
     val photosForTask: StateFlow<List<Photos>> = _photosForTask.asStateFlow()
     val navController: NavController? = null
+
+
 
     fun fetchTagsForTask(taskId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -64,6 +67,15 @@ class TaskViewModel(
 
     init {
         fetchTasks() // Fetch boards when ViewModel is initialized
+    }
+
+    fun fetchDates(taskId: Long){
+        viewModelScope.launch(Dispatchers.IO) {
+            val task = taskDAO.getTaskById(taskId)
+            launch(Dispatchers.Main) {
+                _state.update { it.copy(dateStart = task.startDate.toString(), dateEnd = task.endDate.toString()) }
+            }
+        }
     }
 
 
@@ -205,8 +217,37 @@ class TaskViewModel(
             is TaskEvent.DeleteTaskTag -> TODO()
             is TaskEvent.SetTaskTag -> TODO()
             is TaskEvent.UpdateTaskTag -> TODO()
+            is TaskEvent.updateDateStart -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    taskDAO.updateDateStart(event.id, event.dateStart)
+                    val updatedTask = taskDAO.getTaskById(event.id)
+                    updatedTask?.let { task ->
+                        val newTaskState = _taskState.value?.copy(dateStart = task.startDate.toString())
+                        _taskState.value = newTaskState
+                    }
+                }
+            }
+            is TaskEvent.updateDateEnd -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    taskDAO.updateDateEnd(event.id, event.dateEnd)
+                    val updatedTask = taskDAO.getTaskById(event.id)
+                    updatedTask?.let { task ->
+                        val newTaskState = _taskState.value?.copy(dateEnd = task.endDate.toString())
+                        _taskState.value = newTaskState
+                    }
+                }
+
+            }
             is TaskEvent.SetTaskCover -> {
-                _state.update { it.copy(cover = event.cover) }
+                viewModelScope.launch(Dispatchers.IO) {
+                    taskDAO.updateTaskCover(event.id, event.cover)
+                    val updatedTask = taskDAO.getTaskById(event.id)
+                    updatedTask?.let { task ->
+                        val newTaskState = task.cover?.let { _taskState.value?.copy(cover = it) }
+                        _taskState.value = newTaskState
+                    }
+
+                }
             }
             is TaskEvent.SetPhoto -> {
                 viewModelScope.launch(Dispatchers.IO) {
@@ -245,16 +286,21 @@ class TaskViewModel(
         }
     }
 
-    fun savePhotoToTask(taskId: Long, photoUri: Uri) {
-        viewModelScope.launch {
-            try {
-                // Выполняем сохранение фото в базе данных через репозиторий
-                photoDAO.savePhotoToTask(taskId, photoUri.toString()) // Предполагается, что в вашей модели задачи поле для фото имеет тип String и сохраняет URI в виде строки
-            } catch (e: Exception) {
-                // Обработка ошибок, если не удалось сохранить фото
-            }
+    fun updateDateStart(taskId: Long, dateStart: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            taskDAO.updateDateStart(taskId, dateStart)
+            fetchTasks()
         }
     }
+
+    fun updateDateEnd(taskId: Long, dateEnd: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            taskDAO.updateDateEnd(taskId, dateEnd)
+            fetchTasks()
+        }
+    }
+
+
 
 
     fun getPhotos(taskId: Long) {
@@ -269,4 +315,5 @@ class TaskViewModel(
             }
         }
     }
+
 }

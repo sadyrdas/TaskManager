@@ -11,6 +11,7 @@ import cz.cvut.fel.tasktest.data.Photos
 import cz.cvut.fel.tasktest.data.Tag
 import cz.cvut.fel.tasktest.data.Task
 import cz.cvut.fel.tasktest.data.TaskTagCrossRef
+import java.util.Date
 
 @Dao
 interface TaskDAO {
@@ -62,6 +63,7 @@ interface TaskDAO {
     @Query("UPDATE task SET description = :description WHERE id = :taskId")
     fun updateTaskDescription(taskId: Long, description: String)
 
+<<<<<<< app/src/main/java/cz/cvut/fel/tasktest/data/repository/TaskDAO.kt
     @Query("SELECT * FROM task ORDER BY title ASC")
     fun getTasksSortedByTitleAsc(): List<Task>
 
@@ -80,4 +82,14 @@ interface TaskDAO {
     @Query("SELECT * FROM task ORDER BY endDate DESC")
     fun getTasksSortedByEndDateDesc(): List<Task>
 
+    @Query("UPDATE task SET startDate = :dateStart WHERE id = :taskId")
+    fun updateDateStart(taskId: Long, dateStart: String)
+
+    @Query("UPDATE task SET endDate = :dateEnd WHERE id = :taskId")
+    fun updateDateEnd(taskId: Long, dateEnd: String)
+    @Query("SELECT startDate FROM task WHERE id = :taskId")
+    fun getStartDateOfTask(taskId: Long): Date
+=======
+    
+>>>>>>> app/src/main/java/cz/cvut/fel/tasktest/data/repository/TaskDAO.kt
 }

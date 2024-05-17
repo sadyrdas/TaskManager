@@ -165,7 +165,9 @@ fun CurrentBoardScreen(navController: NavHostController, drawerState: DrawerStat
                                 modifier = Modifier
                                     .align(Alignment.CenterVertically)
                                     .padding(end = 8.dp)
-                                    .clickable { navController.navigate(MainRoute.TaskCreation.name) }
+                                    .clickable { navController.navigate(route =
+                                    "${MainRoute.TaskCreation.name}/$boardId")
+                                    }
                             )
                             Text(
                                 text = "Add new task",
