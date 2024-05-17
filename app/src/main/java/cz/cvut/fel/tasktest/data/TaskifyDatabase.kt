@@ -10,9 +10,10 @@ import cz.cvut.fel.tasktest.data.repository.PhotoDAO
 import cz.cvut.fel.tasktest.data.repository.SectionDAO
 import cz.cvut.fel.tasktest.data.repository.TagDAO
 import cz.cvut.fel.tasktest.data.repository.TaskDAO
+import cz.cvut.fel.tasktest.data.repository.TaskNotificationDAO
 import cz.cvut.fel.tasktest.data.repository.UserDAO
 
-@Database(entities = [Task::class, Board::class, User::class, Tag::class, Section::class, Note::class, TaskTagCrossRef::class, Photos::class], version = 1, exportSchema = false)
+@Database(entities = [Task::class, Board::class, User::class, Tag::class, Section::class, Note::class, TaskTagCrossRef::class, Photos::class, TaskNotification::class], version = 1, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class TaskifyDatabase : RoomDatabase() {
     abstract fun taskDao(): TaskDAO
@@ -21,8 +22,9 @@ abstract class TaskifyDatabase : RoomDatabase() {
     abstract fun tagDAO(): TagDAO
     abstract fun sectionDAO(): SectionDAO
     abstract fun photoDAO(): PhotoDAO
+    abstract fun taskNotificationDAO(): TaskNotificationDAO
     companion object {
-        private const val DATABASE_NAME = "taskify_database"
+        const val DATABASE_NAME = "taskify_database"
 
         @Volatile
         private var INSTANCE: TaskifyDatabase? = null

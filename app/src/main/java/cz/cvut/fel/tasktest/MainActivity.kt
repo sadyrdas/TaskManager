@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.room.Room
+
 import cz.cvut.fel.tasktest.data.viewModels.BoardViewModel
 import cz.cvut.fel.tasktest.data.viewModels.SectionViewModel
 import cz.cvut.fel.tasktest.data.viewModels.TagViewModel
@@ -26,7 +27,7 @@ class MainActivity : ComponentActivity() {
         Room.databaseBuilder(
             applicationContext,
             TaskifyDatabase::class.java,
-            "tasktest-db"
+            TaskifyDatabase.DATABASE_NAME
         ).build()
     }
 
@@ -77,7 +78,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     )
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -92,4 +92,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 }
+

@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.appcompat)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -73,7 +74,7 @@ dependencies {
     implementation("androidx.compose.ui:ui:1.2.1")
     implementation("androidx.compose.material3:material3:1.0.0-alpha01") // Adjust for the latest version
     implementation("androidx.compose.ui:ui-tooling-preview:1.2.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0")
+
     implementation("androidx.activity:activity-compose:1.8.2")
     implementation("androidx.navigation:navigation-compose:2.4.2")
     implementation("com.github.skydoves:colorpicker-compose:1.0.0")
@@ -97,5 +98,8 @@ dependencies {
     implementation("androidx.camera:camera-extensions:1.2.2")
 
     implementation("androidx.compose.material:material-icons-extended:1.4.3")
+
+//    implementation(libs.accompanist.permissions)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
 
 }
