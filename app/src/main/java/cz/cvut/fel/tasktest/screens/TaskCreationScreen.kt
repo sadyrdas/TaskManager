@@ -244,6 +244,8 @@ fun TaskCreationScreen(navController: NavHostController, drawerState: DrawerStat
 
 
                 Button(onClick = {
+                    taskViewModel.onEvent(TaskEvent.SetTaskDateStart(selectedStartDate.toString()))
+                    taskViewModel.onEvent(TaskEvent.SetTaskDateEnd(selectedEndDate.toString()))
                     taskViewModel.onEvent(TaskEvent.SaveTask)
                     navController.navigate("${MainRoute.CurrentBoard.name}/${selectedBoardId.value}") },
                 modifier = Modifier

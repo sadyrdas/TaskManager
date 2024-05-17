@@ -26,17 +26,15 @@ import java.util.TimeZone
 
 class NotificationWorker : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
-        Log.d("NotificationWorker", "onReceive: Worker called")
-
         if (context == null){return}
         CoroutineScope(Dispatchers.IO).launch {
-            val db = TaskifyDatabase.getDatabase(context.applicationContext)
+//            val db = TaskifyDatabase.getDatabase(context.applicationContext)
+            val db = TaskifyDatabase.getDatabase(context)
 
             val notificationDAO = db.taskNotificationDAO()
             val taskDAO = db.taskDao()
-            val tasks = taskDAO.getAllTasks()
 
-            val tasksToBother = soonEnding(tasks)
+            val tasksToBother = soonEnding(taskDAO.getAllTasks())
 
             val notNotifiedTasks = filterNotificatedTasks(notificationDAO, tasksToBother)
 
@@ -81,7 +79,7 @@ class NotificationWorker : BroadcastReceiver() {
         val tomorrow = Calendar.getInstance()
         tomorrow.add(Calendar.DAY_OF_MONTH, 1)
         tomorrow.set(Calendar.HOUR_OF_DAY, 0) // Set time to midnight
-        tomorrow.set(Calendar.MINUTE, 0)
+        tomorrow.set(Calendar.MINUTE, 1)
         tomorrow.set(Calendar.SECOND, 0)
         tomorrow.set(Calendar.MILLISECOND, 0)
 
@@ -91,9 +89,8 @@ class NotificationWorker : BroadcastReceiver() {
             if (tillDate.isNullOrEmpty()) {
                 false // Exclude tasks with empty startDate
             } else {
-                val dateFormat = SimpleDateFormat("EEE MMM dd HH:mm:ss 'GMT'Z yyyy", Locale.ENGLISH)
-                dateFormat.timeZone = TimeZone.getTimeZone("GMT+01:00")
-                val date = dateFormat.parse(tillDate)
+                val format = SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy")
+                val date = format.parse(tillDate)
 
                 // Extract date parts from the task's start date
                 val taskDate = Calendar.getInstance()

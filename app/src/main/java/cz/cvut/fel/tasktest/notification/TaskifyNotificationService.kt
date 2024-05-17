@@ -2,6 +2,7 @@ package cz.cvut.fel.tasktest.notification
 
 import android.annotation.SuppressLint
 import android.app.AlarmManager
+import android.app.AppOpsManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -29,23 +30,48 @@ class TaskifyNotificationService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        Log.d("TaskifyNotificationService", "onStartCommand: Service started")
 
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         taskNotificationDao = TaskifyDatabase.getDatabase(applicationContext).taskNotificationDAO()
         createNotificationChannel()
-        Log.d("TaskifyNotificationService", "onStartCommand: Service started")
 
     }
 
+    private fun isForegroundServiceAllowed(): Boolean {
+        // Check if the app has the necessary permission to run a foreground service
+        val manager = getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+        val mode = manager.checkOpNoThrow(
+            AppOpsManager.OPSTR_GET_USAGE_STATS,
+            android.os.Process.myUid(), packageName
+        )
+        return mode == AppOpsManager.MODE_ALLOWED
+    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForeground(startId, createNotification())
+        var returnValue = START_NOT_STICKY
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (isForegroundServiceAllowed()) {
+                // Foreground service is not allowed, handle it here
+                // You may prompt the user to allow foreground service or take appropriate action
+                returnValue = START_STICKY// Or any appropriate action
+                startForeground(startId, createNotification())
+            }else{
+                requestForegroundServicePermission()
+            }
+        }
         schedulePeriodicWork()
         Log.d("TaskifyNotificationService", "AAAAA: PERMISSISON")
 
+        return returnValue
+    }
+    private fun requestForegroundServicePermission() {
+        // You can create and show a dialog here explaining why the permission is needed
+        // Then, launch the system permission request dialog
 
-        return START_STICKY
+        // For example, you can use UsageStatsManager to direct the user to enable the necessary permission
+        val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
     }
 
     private fun createNotificationChannel() {
@@ -82,7 +108,10 @@ class TaskifyNotificationService : Service() {
             pendingIntent
         )
     }
-
+    override fun onDestroy() {
+        super.onDestroy()
+        // Cleanup resources or perform any necessary tasks when the service is stopped.
+    }
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }

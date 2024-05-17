@@ -9,7 +9,7 @@ import android.Manifest
 import android.os.Build
 import androidx.annotation.RequiresApi
 
-class PermissionActivity : AppCompatActivity() {
+class PermissionComponent : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreate(savedInstanceState: Bundle?) {

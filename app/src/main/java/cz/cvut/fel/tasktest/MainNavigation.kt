@@ -186,7 +186,7 @@ fun MainNavigation(
                 AllTasksScreen(drawerState, taskViewModel, viewModel ,navController)
             }
             composable(route = "${MainRoute.CurrentBoard.name}/{boardId}") { backStackEntry ->
-                val boardId = backStackEntry.arguments?.getString("boardId")?.toLong()
+                val boardId = (backStackEntry.arguments?.getString("boardId")?:"0").toLong()
                 boardId?.let {
                     // Создайте экран для отображения определенного борда с использованием boardId
                     CurrentBoardScreen(navController, drawerState, viewModel, sectionViewModel, it, taskViewModel)
