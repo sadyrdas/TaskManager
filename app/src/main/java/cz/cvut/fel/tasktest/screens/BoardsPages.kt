@@ -69,6 +69,7 @@ fun ArticlesScreen(navController: NavHostController, viewModel: BoardViewModel, 
     var showConfirmDialogAboutDeleteBoard by remember { mutableStateOf(false) }
     val (drawerStateForFilter, setDrawerStateForFilter) = remember { mutableStateOf(false) }
 
+    requestNotificationPermissions()
 
     LaunchedEffect(key1 = true) { // key1 = true ensures this only runs once when the composable enters the composition
         viewModel.fetchBoards() // Call fetch boards if not automatically handled in ViewModel init
@@ -185,6 +186,10 @@ fun ArticlesScreen(navController: NavHostController, viewModel: BoardViewModel, 
         }
 
     }
+}
+
+fun requestNotificationPermissions() {
+
 }
 
 

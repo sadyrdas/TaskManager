@@ -20,6 +20,8 @@ import kotlin.random.Random
 import android.app.PendingIntent
 import android.provider.Settings
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 
 class TaskifyNotificationService : Service() {
     private val NOTIFICATION_CHANNEL_ID = "taskify_notification"
@@ -68,10 +70,6 @@ class TaskifyNotificationService : Service() {
         // You can create and show a dialog here explaining why the permission is needed
         // Then, launch the system permission request dialog
 
-        // For example, you can use UsageStatsManager to direct the user to enable the necessary permission
-        val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        startActivity(intent)
     }
 
     private fun createNotificationChannel() {
