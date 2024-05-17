@@ -179,8 +179,11 @@ fun MainNavigation(
             composable(MainRoute.TagCreation.name){
                 TagCreationScreen(navController, drawerState, viewTagModel)
             }
-            composable(MainRoute.TaskCreation.name){
-                TaskCreationScreen(navController,drawerState, viewModel, taskViewModel, sectionViewModel, viewTagModel)
+            composable(route = "${MainRoute.TaskCreation.name}/{boardId}"){ backStackEntry ->
+                val boardId = backStackEntry.arguments?.getString("boardId")?.toLongOrNull()
+
+                TaskCreationScreen(navController,drawerState, viewModel, taskViewModel, sectionViewModel, viewTagModel, boardId)
+
             }
             composable(MainRoute.AllTasks.name) {
                 AllTasksScreen(drawerState, taskViewModel, viewModel ,navController)

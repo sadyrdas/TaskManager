@@ -5,6 +5,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -55,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
 import cz.cvut.fel.tasktest.CustomAppBar
 import cz.cvut.fel.tasktest.MainRoute
 import cz.cvut.fel.tasktest.R
@@ -112,7 +114,7 @@ fun ArticlesScreen(navController: NavHostController, viewModel: BoardViewModel, 
 
             Divider(
                 modifier = Modifier.padding(top = 12.dp),
-                color = Color.Red, // Цвет разделителя
+                color = Color.DarkGray, // Цвет разделителя
             )
             state.boards.forEach { board ->
                 Row(
@@ -122,10 +124,10 @@ fun ArticlesScreen(navController: NavHostController, viewModel: BoardViewModel, 
                         .padding(horizontal = 16.dp, vertical = 8.dp) // Отступы !!!
                         .clickable{ navController.navigate("${MainRoute.CurrentBoard.name}/${board.id}") }
                 ) {
-                    AsyncImage(
-                        model = board.background,
+                    Image(
+                        painter = rememberAsyncImagePainter(board.background),
                         contentDescription = "Board Background",
-                        modifier = Modifier.size(89.dp, 49.dp)
+                        modifier = Modifier.width(100.dp).height(50.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp)) // Отступ между изображением и текстом !!!
                     Text(text = board.title,
@@ -174,7 +176,7 @@ fun ArticlesScreen(navController: NavHostController, viewModel: BoardViewModel, 
                 }
                 Divider(
                     modifier = Modifier.padding(top = 12.dp),
-                    color = Color.Red,
+                    color = Color.DarkGray,
                 )
 
             }
@@ -275,7 +277,7 @@ fun ExpandableFloatingActionButton(showButtons: Boolean, onToggle: (Boolean) -> 
 
                  // Space between buttons
 
-                IconButton(onClick = { navController.navigate(MainRoute.TaskCreation.name) },
+                IconButton(onClick = { navController.navigate("${MainRoute.TaskCreation.name}/null") },
                     modifier = Modifier
                         .size(56.dp)
                         .background(color = Color(0xFF59D47B), ShapeDefaults.ExtraLarge)

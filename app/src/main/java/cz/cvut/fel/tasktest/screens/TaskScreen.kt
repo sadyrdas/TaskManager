@@ -354,6 +354,7 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                                     onClick = {
                                         showConfirmDialogAboutDeleteBoard = false
                                         taskViewModel.onEvent(TaskEvent.DeleteTask(taskId))
+                                        navController.navigate(MainRoute.Boards.name)
                                     }
                                 ) {
                                     Text("Confirm")
