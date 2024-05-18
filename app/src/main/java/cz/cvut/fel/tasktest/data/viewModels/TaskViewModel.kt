@@ -262,8 +262,28 @@ class TaskViewModel(
                 viewModelScope.launch(Dispatchers.IO) {
                     photoDAO.savePhotoToTask(event.id, event.photo)
                     _taskState.value = _taskState.value?.copy(photo = event.photo )
+                    _taskState.value = _taskState.value?.copy(photo = "")
                     fetchPhotosForTask(event.id)
                     fetchTasks()
+                }
+            }
+            is TaskEvent.setComment -> {
+                viewModelScope.launch(Dispatchers.IO) {
+//                    photoDAO.savePhotoToTask(event.id, event.comment)
+                    _taskState.value = _taskState.value?.copy(photo = event.comment )
+//                    fetchPhotosForTask(event.id)
+//                    fetchTasks()
+                }
+            }
+            is TaskEvent.saveComment -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    val comment = taskState.value?.photo
+                    val id = event.id
+                    photoDAO.savePhotoToTask(id, comment!!)
+                    launch(Dispatchers.Main) {
+                        _taskState.value = _taskState.value?.copy(photo = comment)
+                    }
+                    fetchPhotosForTask(id)
                 }
             }
             is TaskEvent.editTaskTitle -> {

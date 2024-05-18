@@ -3,10 +3,12 @@ package cz.cvut.fel.tasktest.screens
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,11 +25,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -66,6 +70,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
@@ -169,6 +175,7 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
 
     // image state
     var selectedImageUri:Uri? by remember { mutableStateOf(Uri.parse(taskState?.photo ?: "" )) }
+    var selectedComment:String by remember { mutableStateOf(taskState?.photo ?: "") }
     var showCamera by remember { mutableStateOf(false) }
 
     fun getOutputDirectory(): File {
@@ -238,19 +245,29 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                     }
 
                     // Текстовое поле с плейсхолдером "Add comment"
-                    TextField(
-                        value = "", // Ваше значение комментария
-                        onValueChange = { /* Обработчик изменения значения комментария */ },
-                        placeholder = { Text("Add comment") },
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 8.dp),
-                        shape = MaterialTheme.shapes.extraLarge
-                    )
+                    taskState?.photo?.let {
+                        TextField(
+                            value = it, // Ваше значение комментария
+                            onValueChange = {
+                                selectedComment = it//?
+                                taskViewModel.onEvent(TaskEvent.setComment(selectedComment, taskId))
+                                },
+                            placeholder = { Text("Add comment") },
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(horizontal = 8.dp),
+                            shape = MaterialTheme.shapes.extraLarge
+                        )
+                    }
 
                     // Иконка отправки
                     IconButton(
-                        onClick = { /* Действие при отправке комментария */ }
+                        onClick = {
+                            if (selectedComment.isNotEmpty()){
+                                taskViewModel.onEvent(TaskEvent.SetPhoto(selectedComment, taskId)) // save to db
+                                selectedComment = ""
+                            }
+                        }
                     ) {
                         Icon(
                             Icons.Default.Send,
@@ -588,15 +605,20 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
 
 
             photosForTask.forEach{photos ->
-                Image(
-                    painter = rememberAsyncImagePainter(photos.photo),
-                    contentDescription = "Selected Image",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .padding(vertical = 16.dp),
-                    contentScale = ContentScale.Crop
-                )
+                if (photos.photo.startsWith("content://") || photos.photo.startsWith("file://")) {
+                    Image(
+                        painter = rememberAsyncImagePainter(photos.photo),
+                        contentDescription = "Selected Image",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .padding(vertical = 16.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+                else {
+                        CommentAttachment(comment = photos.photo)
+                }
             }
 
             if (isDrawerOpen) {
@@ -702,6 +724,35 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
             navController = navController
         )
     }
+}
+
+@Composable
+fun CommentAttachment(comment: String) {
+    Row (
+        modifier = Modifier
+            .padding(vertical = 4.dp, horizontal = 8.dp)
+            .border(2.dp, Color.Gray, RoundedCornerShape(8.dp))
+    ){
+        Icon(imageVector = Icons.Default.ArrowForwardIos, contentDescription = ">", modifier=Modifier.padding(top = 4.dp).align(Alignment.CenterVertically))
+        Text(
+            modifier = Modifier.padding(8.dp),
+//                .height(50.dp)
+//                .width(500.dp),
+            textAlign = TextAlign.Left,
+            fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+            text = comment
+        )
+    }
+}
+
+@Preview
+@Composable
+fun commentPreview(){
+    Scaffold {
+        Log.d("TAG", "commentPreview: $it")
+        CommentAttachment("comment")
+    }
+
 }
 
 @Composable
