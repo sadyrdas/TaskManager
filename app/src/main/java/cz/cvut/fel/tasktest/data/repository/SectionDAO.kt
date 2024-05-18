@@ -22,4 +22,10 @@ interface SectionDAO {
     @Query("SELECT * FROM section WHERE boardId = :boardId")
     fun getSectionsByBoardId(boardId: Long): List<Section>
 
+    @Query("DELETE FROM section WHERE boardId = :boardId")
+    fun deleteSectionsByBoardId(boardId: Long)
+
+    @Query("UPDATE section SET title = :title WHERE id = :sectionId")
+    fun updateSectionTitle(title: String, sectionId: Long)
+
 }

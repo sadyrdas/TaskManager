@@ -3,11 +3,12 @@ package cz.cvut.fel.tasktest.screens
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
-import androidx.activity.compose.ManagedActivityResultLauncher
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,11 +25,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -67,6 +70,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
@@ -78,6 +83,7 @@ import cz.cvut.fel.tasktest.data.events.TaskEvent
 import cz.cvut.fel.tasktest.data.viewModels.CameraView
 import cz.cvut.fel.tasktest.data.viewModels.TagViewModel
 import cz.cvut.fel.tasktest.data.viewModels.TaskViewModel
+import cz.cvut.fel.tasktest.data.viewModels.UserViewModel
 import cz.cvut.fel.tasktest.ui.theme.Primary
 import kotlinx.coroutines.launch
 import java.io.File
@@ -90,7 +96,15 @@ import java.util.concurrent.Executors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewModel: TagViewModel, navController: NavController, taskId:Long) {
+fun TaskScreen(
+    drawerState: DrawerState,
+    taskViewModel: TaskViewModel,
+    tagViewModel: TagViewModel,
+    userViewModel: UserViewModel,
+    navController: NavController,
+    taskId:Long
+) {
+
     var isEditingDescription by remember { mutableStateOf(false) }
     var isDropdownExpanded by remember { mutableStateOf(false) }
     var isDrawerOpen by remember { mutableStateOf(false) }
@@ -98,11 +112,15 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
     val bottomSheetState = androidx.compose.material3.rememberModalBottomSheetState(
         skipPartiallyExpanded = skipPartiallyExpanded
     )
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
 
-    }
+    val fileImagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri: Uri? ->
+            uri?.let {
+                taskViewModel.savePhotoFrom(taskId, uri)
+            }
+        }
+    )
     val context = LocalContext.current
 
     val scope = rememberCoroutineScope()
@@ -139,6 +157,7 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
 
     LaunchedEffect(key1 = null) {
         taskViewModel.fetchTasks()
+        userViewModel.fetchUser()
     }
 
     LaunchedEffect(taskId) {
@@ -168,13 +187,15 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
             }
         }
     )
-
+    val userState by userViewModel.userState.collectAsState()
+    val userAvatar = userState?.background
     val title = taskState?.title
     val description = taskState?.description
     var editedDescription by remember { mutableStateOf(description ?: "") }
 
     // image state
     var selectedImageUri:Uri? by remember { mutableStateOf(Uri.parse(taskState?.photo ?: "" )) }
+    var selectedComment:String by remember { mutableStateOf(taskState?.photo ?: "") }
     var showCamera by remember { mutableStateOf(false) }
 
     fun getOutputDirectory(): File {
@@ -241,23 +262,39 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                             .background(Color.Gray)
                             .align(Alignment.CenterVertically)
                     ) {
-                        // аватара сюда
+
+                        Image(
+                            modifier = Modifier.size(64.dp),
+                            painter = rememberAsyncImagePainter(userAvatar),
+                            contentScale = ContentScale.Crop,
+                            contentDescription = null
+                        )
                     }
 
                     // Текстовое поле с плейсхолдером "Add comment"
-                    TextField(
-                        value = "", // Ваше значение комментария
-                        onValueChange = { /* Обработчик изменения значения комментария */ },
-                        placeholder = { Text("Add comment") },
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 8.dp),
-                        shape = MaterialTheme.shapes.extraLarge
-                    )
+                    taskState?.photo?.let {
+                        TextField(
+                            value = it, // Ваше значение комментария
+                            onValueChange = {
+                                selectedComment = it//?
+                                taskViewModel.onEvent(TaskEvent.setComment(selectedComment, taskId))
+                                },
+                            placeholder = { Text("Add comment") },
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(horizontal = 8.dp),
+                            shape = MaterialTheme.shapes.extraLarge
+                        )
+                    }
 
                     // Иконка отправки
                     IconButton(
-                        onClick = { /* Действие при отправке комментария */ }
+                        onClick = {
+                            if (selectedComment.isNotEmpty()){
+                                taskViewModel.onEvent(TaskEvent.SetPhoto(selectedComment, taskId)) // save to db
+                                selectedComment = ""
+                            }
+                        }
                     ) {
                         Icon(
                             Icons.Default.Send,
@@ -389,9 +426,10 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                         modifier = Modifier
                             .padding(vertical = 8.dp)
                             .weight(1f)
-                            .width(150.dp)
+                            .width(150.dp),
+
                     ) {
-                        Text("Delete Task")
+                        Text("Delete Task", color = Color.Black)
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Button(
@@ -401,8 +439,9 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                             .padding(vertical = 8.dp)
                             .weight(1f)
                             .width(150.dp)
+
                     ) {
-                        Text("Edit title")
+                        Text("Edit title", color = Color.Black)
                     }
                 }
             }
@@ -595,15 +634,20 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
 
 
             photosForTask.forEach{photos ->
-                Image(
-                    painter = rememberAsyncImagePainter(photos.photo),
-                    contentDescription = "Selected Image",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .padding(vertical = 16.dp),
-                    contentScale = ContentScale.Crop
-                )
+                if (photos.photo.startsWith("content://") || photos.photo.startsWith("file://")) {
+                    Image(
+                        painter = rememberAsyncImagePainter(photos.photo),
+                        contentDescription = "Selected Image",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .padding(vertical = 16.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+                else {
+                        CommentAttachment(comment = photos.photo)
+                }
             }
 
             if (isDrawerOpen) {
@@ -689,8 +733,12 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                                 Text(
                                     text = "Add file",
                                     style = MaterialTheme.typography.bodyLarge,
+                                    color = Color.Black,
                                     modifier = Modifier
-                                        .padding(16.dp)
+                                        .padding(16.dp).clickable {
+                                            fileImagePickerLauncher.launch("image/*")
+                                            isDrawerOpen = false
+                                                                  },
                                 )
                             }
                         }
@@ -709,6 +757,35 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
             navController = navController
         )
     }
+}
+
+@Composable
+fun CommentAttachment(comment: String) {
+    Row (
+        modifier = Modifier
+            .padding(vertical = 4.dp, horizontal = 8.dp)
+            .border(2.dp, Color.Gray, RoundedCornerShape(8.dp))
+    ){
+        Icon(imageVector = Icons.Default.ArrowForwardIos, contentDescription = ">", modifier=Modifier.padding(top = 4.dp).align(Alignment.CenterVertically))
+        Text(
+            modifier = Modifier.padding(8.dp),
+//                .height(50.dp)
+//                .width(500.dp),
+            textAlign = TextAlign.Left,
+            fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+            text = comment
+        )
+    }
+}
+
+@Preview
+@Composable
+fun commentPreview(){
+    Scaffold {
+        Log.d("TAG", "commentPreview: $it")
+        CommentAttachment("comment")
+    }
+
 }
 
 @Composable

@@ -363,8 +363,8 @@ fun TaskCreationScreen(
                     }else{
                         // Show error dialog if the end date is before the start date
                         showInvalidDateDialog = true
-                    }
-         },
+                        }
+                    },
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(top = 50.dp)) {

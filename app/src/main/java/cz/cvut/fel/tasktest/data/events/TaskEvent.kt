@@ -22,4 +22,6 @@ sealed interface TaskEvent {
     data class updateDateStart(val dateStart: String, val id: Long) : TaskEvent
     data class updateDateEnd(val dateEnd: String, val id: Long) : TaskEvent
     data class editTaskTitle(val newTitle: String, val taskId: Long): TaskEvent
+    data class setComment(val comment: String, val id: Long): TaskEvent
+    data class saveComment(val id: Long, val comment:String): TaskEvent
 }

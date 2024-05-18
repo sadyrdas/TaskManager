@@ -84,7 +84,9 @@ fun BoardCreationScreen(drawerState: DrawerState, viewModel: BoardViewModel, nav
     Scaffold(
         topBar = {
             CustomAppBar(drawerState = drawerState, title = "Create Desk",
-                backgroundColor = MaterialTheme.colorScheme.primaryContainer, imageVector = Icons.Default.Close)
+                backgroundColor = MaterialTheme.colorScheme.primaryContainer, imageVector = Icons.Default.Close,
+                navigationAction = {navController.navigate(MainRoute.Boards.name)}
+                )
         }
     ) { paddingValues ->
         Column(

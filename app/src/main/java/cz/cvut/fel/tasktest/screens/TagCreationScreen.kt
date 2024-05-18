@@ -93,14 +93,14 @@ fun TagCreationScreen(navController: NavHostController, drawerState: DrawerState
                 .background(MaterialTheme.colorScheme.background),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .height(50.dp)
-                .width(400.dp),
-                textAlign = TextAlign.Center,
-                fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                text = "Create your tags"
-            )
+//            Text(modifier = Modifier
+//                .background(MaterialTheme.colorScheme.primaryContainer)
+//                .height(50.dp)
+//                .fillMaxWidth(),
+//                textAlign = TextAlign.Center,
+//                fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+//                text = "Create your tags"
+//            )
             Spacer(modifier = Modifier.height(60.dp))
             Box(modifier =
             Modifier
@@ -129,7 +129,7 @@ fun TagCreationScreen(navController: NavHostController, drawerState: DrawerState
                 placeholder = { Text("Tag Name")},
                 modifier = Modifier
                     .height(60.dp)
-                    .width(400.dp)
+                    .width(250.dp)
                     .align(Alignment.CenterHorizontally),
                 textStyle = MaterialTheme.typography.bodyLarge,
             )
@@ -162,9 +162,10 @@ fun TagCreationScreen(navController: NavHostController, drawerState: DrawerState
             }
             Spacer(modifier = Modifier.height(40.dp))
             Divider(
-                modifier = Modifier.padding(top = 12.dp),
-                color = Color.Red,
+                modifier = Modifier.padding(top = 12.dp).height(1.5.dp),
+                color = Color.DarkGray,
             )
+
             Text(
                 text = "Your Tags",
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,
@@ -172,6 +173,10 @@ fun TagCreationScreen(navController: NavHostController, drawerState: DrawerState
                 modifier = Modifier
                     .padding(top = 12.dp)
                     .align(Alignment.CenterHorizontally)
+            )
+            Divider(
+                modifier = Modifier.padding(bottom = 12.dp).height(1.5.dp),
+                color = Color.DarkGray,
             )
             Column(modifier = Modifier.verticalScroll(rememberScrollState(), reverseScrolling = true)) {
                 state.tags.forEach { tag ->

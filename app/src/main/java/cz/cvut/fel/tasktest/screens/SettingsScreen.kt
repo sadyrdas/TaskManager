@@ -254,8 +254,8 @@ fun AboutWindow(onDismiss: () -> Unit){
             Spacer(modifier = Modifier.height(60.dp))
             Box(
                 modifier = Modifier
-                    .size(height = 150.dp, width = 300.dp)
-                    .border(2.dp, MaterialTheme.colorScheme.primaryContainer),
+                    .size(height = 150.dp, width = 300.dp),
+//                    .border(2.dp, MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
                 IconButton(

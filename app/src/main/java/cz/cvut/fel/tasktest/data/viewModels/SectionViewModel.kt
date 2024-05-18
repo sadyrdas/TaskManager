@@ -21,7 +21,6 @@ class SectionViewModel (
 
     private val _state = MutableStateFlow(SectionState())
     val state: StateFlow<SectionState> = _state.asStateFlow()
-    val converters = Converters()
 
 
     fun fetchSections(boardId:Long) {
@@ -30,6 +29,9 @@ class SectionViewModel (
             _state.update { currentState ->
                 currentState.copy(sections = sections)
             }
+//            launch(Dispatchers.Main) {
+//                _state.update { it.copy(sections = sections) }
+//            }
         }
     }
 
@@ -82,6 +84,13 @@ class SectionViewModel (
                     launch(Dispatchers.Main) {
                         _state.update { it.copy(title = "") }
                     }
+                }
+            }
+            is SectionEvent.EditSectionTitle -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    sectionDAO.updateSectionTitle(event.title, event.sectionId,)
+                    _state.value = _state.value.copy(title = event.title)
+                    fetchSections(event.boardId)
                 }
             }
         }
