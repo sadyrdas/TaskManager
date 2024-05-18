@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
@@ -82,9 +83,18 @@ fun CurrentBoardScreen(navController: NavHostController, drawerState: DrawerStat
     }
 
     var isEditTitleDialogOpen by remember { mutableStateOf(false) }
+    var isDeleteSectionDialogOpen by remember { mutableStateOf(false) }
+
     fun toggleEditSectionDialog(sectionId: Long?=null) {
         isEditTitleDialogOpen = !isEditTitleDialogOpen
         focusSectionId = sectionId
+    }
+
+    var currentSection:Section? = null
+
+    fun toggleDeleteSection(section: Section? = null) {
+        isDeleteSectionDialogOpen = !isDeleteSectionDialogOpen
+        currentSection = section
     }
 
     val titleOfCurrentBoard = boardState?.title ?: ""
@@ -107,12 +117,19 @@ fun CurrentBoardScreen(navController: NavHostController, drawerState: DrawerStat
     ) { paddingValues ->
         if (isEditTitleDialogOpen == true) {
             EditSectionDialog(
-//                isOpen = isEditTitleDialogOpen,
                 currentTitle = sectionState.title ?: "",
                 onConfirm = { newTitle ->
                     sectionViewModel.onEvent(SectionEvent.EditSectionTitle(newTitle, boardId, focusSectionId!!))
                 },
-//                section = sections.find { it.id == currentSectionId }!!,
+                onDismiss = { toggleDeleteSection() }
+            )
+        }
+        if (isDeleteSectionDialogOpen == true) {
+            IsDeleteDialog(
+                onConfirm = {
+                    sectionViewModel.onEvent(SectionEvent.DeleteSection(currentSection!!))
+                    boardViewModel.fetchBoards()
+                },
                 onDismiss = { toggleEditSectionDialog() }
             )
         }
@@ -153,6 +170,15 @@ fun CurrentBoardScreen(navController: NavHostController, drawerState: DrawerStat
                                 Icon(
                                     imageVector = Icons.Default.Create,
                                     contentDescription = "Section Edit",
+                                    modifier = Modifier
+                                        .align(Alignment.CenterVertically)
+                                        .padding(end = 8.dp)
+                                )
+                            }
+                            IconButton(onClick = { toggleDeleteSection(section) }) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Delete Section",
                                     modifier = Modifier
                                         .align(Alignment.CenterVertically)
                                         .padding(end = 8.dp)
@@ -220,6 +246,30 @@ fun CurrentBoardScreen(navController: NavHostController, drawerState: DrawerStat
     }
 
 }
+
+@Composable
+fun IsDeleteDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        title = { Text("Delete Section") },
+        text = {
+            Text("Are you sure you want to delete this section?") },
+        confirmButton = {
+            Button(onClick = {
+                onConfirm()
+                onDismiss()
+            }) {
+                Text("Confirm")
+            }
+        },
+        dismissButton = {
+            Button(onClick = { onDismiss() }) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
 @Composable
 fun FloatingButton(navController: NavHostController, boardId: Long) {
     FloatingActionButton(
