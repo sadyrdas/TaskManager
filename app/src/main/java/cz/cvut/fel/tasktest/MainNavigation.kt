@@ -97,7 +97,6 @@ fun requestNotificationPermissions(launcher: ManagedActivityResultLauncher<Array
 
     val permissionsArray = permissions.toTypedArray()
 
-    Log.d("TAG", "requestNotificationPermissions: Requesting permissions")
     launcher.launch(permissionsArray)
 }
 @Composable

@@ -3,6 +3,7 @@ package cz.cvut.fel.tasktest.screens
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -84,6 +85,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.Executors
+//import com.google.accompanist.permissions.rememberPermissionState
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -96,7 +98,11 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
     val bottomSheetState = androidx.compose.material3.rememberModalBottomSheetState(
         skipPartiallyExpanded = skipPartiallyExpanded
     )
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
 
+    }
     val context = LocalContext.current
 
     val scope = rememberCoroutineScope()
@@ -192,6 +198,7 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
             ) == PackageManager.PERMISSION_GRANTED
         )
     }
+
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),

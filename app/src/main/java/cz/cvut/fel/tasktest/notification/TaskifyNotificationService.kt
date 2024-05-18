@@ -92,7 +92,7 @@ class TaskifyNotificationService : Service() {
         // Create and return a notification for the foreground service
         return NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setContentTitle("Taskify")
-            .setContentText("Service is running")
+            .setContentText("Have a nice and productive day!")
             .setSmallIcon(R.drawable.taskicon)
             .setPriority(NotificationManager.IMPORTANCE_HIGH)
             .setAutoCancel(true)
