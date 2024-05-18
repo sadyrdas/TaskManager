@@ -31,6 +31,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.util.Date
 import java.util.UUID
+import kotlin.math.log
 
 class TaskViewModel(
     private val taskDAO: TaskDAO,
@@ -355,4 +356,7 @@ class TaskViewModel(
         }
     }
 
+    fun savePhotoFrom(taskId: Long, uri: Uri) {
+        this.onEvent(TaskEvent.SetPhoto(uri.toString(), taskId))
+    }
 }

@@ -83,6 +83,7 @@ import cz.cvut.fel.tasktest.data.events.TaskEvent
 import cz.cvut.fel.tasktest.data.viewModels.CameraView
 import cz.cvut.fel.tasktest.data.viewModels.TagViewModel
 import cz.cvut.fel.tasktest.data.viewModels.TaskViewModel
+import cz.cvut.fel.tasktest.data.viewModels.UserViewModel
 import cz.cvut.fel.tasktest.ui.theme.Primary
 import kotlinx.coroutines.launch
 import java.io.File
@@ -94,7 +95,15 @@ import java.util.concurrent.Executors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewModel: TagViewModel, navController: NavController, taskId:Long) {
+fun TaskScreen(
+    drawerState: DrawerState,
+    taskViewModel: TaskViewModel,
+    tagViewModel: TagViewModel,
+    userViewModel: UserViewModel,
+    navController: NavController,
+    taskId:Long
+) {
+
     var isEditingDescription by remember { mutableStateOf(false) }
     var isDropdownExpanded by remember { mutableStateOf(false) }
     var isDrawerOpen by remember { mutableStateOf(false) }
@@ -102,7 +111,14 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
     val bottomSheetState = androidx.compose.material3.rememberModalBottomSheetState(
         skipPartiallyExpanded = skipPartiallyExpanded
     )
-
+    val fileImagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri: Uri? ->
+            uri?.let {
+                taskViewModel.savePhotoFrom(taskId, uri)
+            }
+        }
+    )
     val context = LocalContext.current
 
     val scope = rememberCoroutineScope()
@@ -139,6 +155,7 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
 
     LaunchedEffect(key1 = null) {
         taskViewModel.fetchTasks()
+        userViewModel.fetchUser()
     }
 
     LaunchedEffect(taskId) {
@@ -168,7 +185,8 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
             }
         }
     )
-
+    val userState by userViewModel.userState.collectAsState()
+    val userAvatar = userState?.background
     val title = taskState?.title
     val description = taskState?.description
     var editedDescription by remember { mutableStateOf(description ?: "") }
@@ -241,7 +259,13 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                             .background(Color.Gray)
                             .align(Alignment.CenterVertically)
                     ) {
-                        // аватара сюда
+
+                        Image(
+                            modifier = Modifier.size(64.dp),
+                            painter = rememberAsyncImagePainter(userAvatar),
+                            contentScale = ContentScale.Crop,
+                            contentDescription = null
+                        )
                     }
 
                     // Текстовое поле с плейсхолдером "Add comment"
@@ -399,9 +423,10 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                         modifier = Modifier
                             .padding(vertical = 8.dp)
                             .weight(1f)
-                            .width(150.dp)
+                            .width(150.dp),
+
                     ) {
-                        Text("Delete Task")
+                        Text("Delete Task", color = Color.Black)
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Button(
@@ -411,8 +436,9 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                             .padding(vertical = 8.dp)
                             .weight(1f)
                             .width(150.dp)
+
                     ) {
-                        Text("Edit title")
+                        Text("Edit title", color = Color.Black)
                     }
                 }
             }
@@ -704,8 +730,12 @@ fun TaskScreen(drawerState: DrawerState, taskViewModel: TaskViewModel, tagViewMo
                                 Text(
                                     text = "Add file",
                                     style = MaterialTheme.typography.bodyLarge,
+                                    color = Color.Black,
                                     modifier = Modifier
-                                        .padding(16.dp)
+                                        .padding(16.dp).clickable {
+                                            fileImagePickerLauncher.launch("image/*")
+                                            isDrawerOpen = false
+                                                                  },
                                 )
                             }
                         }
