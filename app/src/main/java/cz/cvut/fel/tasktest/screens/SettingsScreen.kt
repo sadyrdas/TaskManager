@@ -42,10 +42,21 @@ import androidx.navigation.NavHostController
 import cz.cvut.fel.tasktest.CustomAppBar
 import cz.cvut.fel.tasktest.MainRoute
 import cz.cvut.fel.tasktest.R
+import android.content.SharedPreferences
+import android.content.Context
+import android.content.Intent
+import androidx.compose.ui.platform.LocalContext
+import cz.cvut.fel.tasktest.notification.TaskifyNotificationService
 
 @Composable
 fun SettingsScreen(navController: NavHostController, drawerState: DrawerState) {
     var showAboutWindow by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+    var isNotificationEnabled = sharedPreferences.getBoolean("notifications_enabled", true)
+    var isNotificationEnabledString by remember {
+        mutableStateOf(if (!isNotificationEnabled) "Enable" else "Disable"
+    )}
     fun hideAboutWindow() {
         showAboutWindow = false
     }
@@ -74,7 +85,7 @@ fun SettingsScreen(navController: NavHostController, drawerState: DrawerState) {
                )
            )
             ClickableText(
-                text = AnnotatedString("Enable notifications"),
+                text = AnnotatedString("$isNotificationEnabledString notifications"),
                 modifier = Modifier
                     .height(70.dp)
                     .width(400.dp)
@@ -84,7 +95,10 @@ fun SettingsScreen(navController: NavHostController, drawerState: DrawerState) {
                     fontSize = MaterialTheme.typography.bodyLarge.fontSize,
                 ),
                 onClick = {
-                    // Handle click
+                    handleNotificationsClick(context, sharedPreferences, isNotificationEnabled) { newStatus, newString ->
+                        isNotificationEnabled = newStatus
+                        isNotificationEnabledString = newString
+                    }
                 }
             )
             Text(modifier = Modifier
@@ -169,6 +183,30 @@ fun SettingsScreen(navController: NavHostController, drawerState: DrawerState) {
     }
 }
 
+fun handleNotificationsClick(
+    context: Context,
+    sharedPreferences: SharedPreferences,
+    isNotificationEnabled: Boolean,
+    updateState: (Boolean, String) -> Unit
+) {
+    val newStatus = !isNotificationEnabled
+    val newString = if (newStatus) "Disable" else "Enable"
+    with(sharedPreferences.edit()) {
+        putBoolean("notifications_enabled", newStatus)
+        apply()
+    }
+
+
+    if (newStatus) {
+        // Start the notification service
+        context.startService(Intent(context, TaskifyNotificationService::class.java))
+    } else {
+        // Stop the notification service
+        context.stopService(Intent(context, TaskifyNotificationService::class.java))
+    }
+
+    updateState(newStatus, newString)
+}
 @Composable
 fun AboutWindow(onDismiss: () -> Unit){
     val uriHandler = LocalUriHandler.current

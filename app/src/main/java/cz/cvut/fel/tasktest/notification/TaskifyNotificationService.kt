@@ -21,6 +21,7 @@ import android.provider.Settings
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import android.Manifest
+import android.content.SharedPreferences
 
 class TaskifyNotificationService : Service() {
     private val NOTIFICATION_CHANNEL_ID = "taskify_notification"
@@ -28,9 +29,13 @@ class TaskifyNotificationService : Service() {
     private val PERIODIC_INTERVAL_MILLIS = 1 * 30 * 1000L // 30 sec
     private lateinit var notificationManager: NotificationManager
     private lateinit var taskNotificationDao: TaskNotificationDAO
-
+    private lateinit var sharedPreferences: SharedPreferences
+    private var isNotificationEnabled: Boolean = true
     override fun onCreate() {
         super.onCreate()
+        sharedPreferences = getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+        isNotificationEnabled = sharedPreferences.getBoolean("notifications_enabled", true)
+
 
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         taskNotificationDao = TaskifyDatabase.getDatabase(applicationContext).taskNotificationDAO()
@@ -40,6 +45,11 @@ class TaskifyNotificationService : Service() {
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (!isNotificationEnabled) {
+            stopSelf()
+            return START_NOT_STICKY
+        }
+
         var returnValue = START_NOT_STICKY
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (isForegroundServiceAllowed(this)) {
@@ -112,9 +122,17 @@ class TaskifyNotificationService : Service() {
             pendingIntent
         )
     }
+
+    private fun cancelPeriodicWork() {
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val alarmIntent = Intent(this, NotificationWorker::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, PendingIntent.FLAG_IMMUTABLE)
+
+        alarmManager.cancel(pendingIntent)
+    }
     override fun onDestroy() {
         super.onDestroy()
-        // Cleanup resources or perform any necessary tasks when the service is stopped.
+        cancelPeriodicWork()
     }
     override fun onBind(intent: Intent?): IBinder? {
         return null
